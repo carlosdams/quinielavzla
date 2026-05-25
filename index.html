@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Quiniela Mundial 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js" integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
+  crossorigin="anonymous">
+  </script>
+<style>
+@font-face{font-family:'BebasLocal';src:local('Bebas Neue'),local('BebasNeue');}
+:root{
+  --verde:#1a472a;--verde2:#1a3a22;--verde3:#f0f7f2;
+  --gold:#c9960c;--gold2:#fffbf0;--gold3:#e8dfc8;
+  --dark:#1a2a3a;--text:#1a2a3a;--muted:#666;
+  --bg:#f4f7f4;--card:#fff;--border:#d0ddd0;
+  --green:#1a472a;--red:#c0392b;--blue:#2471a3;
+  --inp:#f5f6fa;--green2:#d5f5e3;--blue2:#d6eaf8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',Arial,sans-serif;font-size:15px;min-height:100vh;}
+.bbn{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-style:normal;}
+
+/* ── PANTALLAS ── */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--verde);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:var(--gold);}
+.topbar-back{color:rgba(255,255,255,0.7);font-size:20px;cursor:pointer;margin-right:4px;}
+.progress-pill{background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,0.7);}
+
+/* topbar nav buttons (used on portada) */
+.topbar-nav-btn{background:#ffdede;border:1px solid #ff9a9a;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;color:#7a0000;cursor:pointer;backdrop-filter:blur(4px);}
+
+@media (min-width:900px){
+  .topbar-nav-btn{padding:10px 14px;font-size:15px;border-radius:9px;}
+}
+
+/* ── PORTADA ── */
+.portada-hero{background:var(--verde);padding:0;position:relative;}
+.portada-subtitle{font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:2px;margin-bottom:6px;}
+.portada-title{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:28px;color:#fff;line-height:1.1;margin-bottom:4px;}
+.portada-dates{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px;}
+.mascotas{display:flex;justify-content:center;align-items:flex-end;gap:16px;padding-bottom:0;}
+.mascota{text-align:center;}
+.mascota img{height:100px;object-fit:contain;display:block;margin:0 auto;}
+.mascotas-img-wrap{width:100%;overflow:hidden;margin-top:0;max-height:220px;}
+.mascotas-img{width:100%;height:auto;max-height:220px;object-fit:contain;display:block;}
+.mascota-name{font-size:12px;font-weight:600;color:var(--gold);margin-top:4px;}
+.mascota-pais{font-size:10px;color:rgba(255,255,255,0.4);}
+.mascota.center img{height:100px;}
+
+.portada-body{background:var(--bg);padding:16px 16px 20px;flex:1;}
+.portada-label{font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px;}
+.input-row{display:flex;gap:8px;margin-bottom:20px;}
+.inp-num{width:72px;border:1px solid var(--border);border-radius:8px;padding:11px 10px;font-size:15px;font-family:'Outfit',Arial,sans-serif;background:#fff;color:var(--dark);outline:none;}
+.inp-num:focus{border-color:var(--gold);}
+.inp-name{flex:1;border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:15px;font-family:'Outfit',Arial,sans-serif;background:#fff;color:var(--dark);outline:none;}
+.inp-name:focus{border-color:var(--gold);}
+.inp-name::placeholder,.inp-num::placeholder{color:#bbb;font-size:13px;}
+.ac-opt{display:block;padding:7px 8px;border-radius:6px;cursor:pointer;color:#fff;font-size:13px;transition:background .15s;}
+.ac-opt:hover{background:#c9960c;color:#1a3a1a;font-weight:600;}
+
+.nav-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.nav-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.nav-card:active{transform:scale(0.97);}
+.nav-card-icon{font-size:22px;margin-bottom:6px;}
+.nav-card-title{font-size:13px;font-weight:600;color:var(--dark);}
+.nav-card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Larger nav buttons on desktop: keep mobile unchanged */
+@media (min-width:900px){
+  .nav-cards{gap:14px;}
+  .nav-card{padding:18px 16px;border-radius:12px;font-size:15px;}
+  .nav-card-icon{font-size:28px;margin-bottom:6px;}
+  .nav-card-title{font-size:15px;}
+  .nav-card-sub{font-size:12px;margin-top:4px;}
+}
+
+.action-btns{display:grid;grid-template-columns:1fr;gap:10px;}
+@media (min-width:700px){.action-btns{grid-template-columns:1fr 1fr 1fr;}}
+.btn-guardar{background:#d6eeff;border:1.5px solid #6fb3ff;border-radius:10px;padding:13px;font-size:14px;font-weight:600;color:#0a4f7a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-ver-quiniela{background:#e6f9ea;border:1.5px solid #8adf99;border-radius:10px;padding:13px;font-size:14px;font-weight:600;color:#176239;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-pdf{background:var(--gold);border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-guardar:active,.btn-pdf:active,.btn-ver-quiniela:active{transform:scale(0.97);}
+
+/* ── PANTALLA GRUPOS ── */
+.grupos-nav-bar{background:var(--verde2);padding:10px 12px 14px;}
+.grupos-nav-label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:8px;}
+.grupos-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.gbtn{border-radius:6px;padding:7px 4px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.gbtn.act{background:var(--gold);color:#fff;}
+.gbtn.ok{background:rgba(26,200,80,0.25);color:#aaffcc;}
+.gbtn.inact{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.65);}
+
+.grupos-content{padding:12px;flex:1;overflow-y:auto;}
+.grupo-hdr{background:var(--dark);border-radius:10px;padding:11px 14px;margin-bottom:10px;}
+.grupo-hdr-title{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px;}
+.grupo-hdr-teams{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;}
+
+.card{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:10px;}
+.card-hdr{background:var(--dark);padding:8px 12px;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;}
+
+/* Tabla posiciones */
+.tpos{width:100%;border-collapse:collapse;}
+.tpos thead tr{background:#f7f8fa;}
+.tpos thead th{padding:4px 3px;font-size:8px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:center;border-bottom:1px solid var(--border);}
+.tpos thead th.tls{text-align:left;padding-left:6px;}
+.tpos tbody tr{border-bottom:1px solid #f0f1f3;}
+.tpos tbody tr:last-child{border-bottom:none;}
+.tpos tbody tr.c1{background:var(--blue2);}
+.tpos tbody tr.c2{background:#edf7ff;}
+.tpos tbody tr.c3{background:var(--green2);}
+.tpos td{padding:5px 3px;text-align:center;font-size:10px;vertical-align:middle;}
+.tpos td.tls{text-align:left;font-weight:700;font-size:10px;padding-left:6px;}
+.po2{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:14px;color:var(--gold);width:18px;}
+.po2.top{color:var(--green);}
+.pt2{font-weight:700;color:var(--blue);}
+.nd{color:var(--muted);font-size:9px;}
+.dg2{color:var(--text);}.dg2.pp{color:var(--green);}.dg2.nn{color:var(--red);}
+.ly{display:flex;gap:10px;padding:5px 10px;border-top:1px solid var(--border);font-size:9px;color:var(--muted);}
+.ld{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+
+/* Partidos grupo */
+.partidos-hdr{display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid #f0f0f0;background:#f8f9fa;}
+.partidos-hdr span{font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+.partido-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto minmax(0,1fr) 36px;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #f5f5f5;}
+.partido-row.alt{background:#fafafa;}
+.partido-row:last-child{border-bottom:none;}
+.pjor{font-size:10px;color:var(--muted);text-align:center;font-weight:600;}
+.plocal{font-size:12px;font-weight:600;color:var(--dark);text-align:right;display:flex;align-items:center;gap:4px;justify-content:flex-end;overflow:hidden;}
+.plocal span.pn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pvisit{font-size:12px;font-weight:600;color:var(--dark);text-align:left;display:flex;align-items:center;gap:4px;overflow:hidden;}
+.pvisit span.pn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pfecha{font-size:10px;color:#bbb;text-align:right;}
+.marcador{display:flex;align-items:center;gap:3px;}
+.sc{width:30px;height:30px;background:#fff;border:1.5px solid #ccc;color:var(--dark);font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:15px;text-align:center;border-radius:6px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s;}
+.sc:focus{border-color:var(--gold);background:var(--gold2);}
+.sc.ok{border-color:var(--green);background:#eafaf1;}
+.sep{font-size:13px;color:#bbb;font-weight:300;}
+
+/* Empate/desempate grupos */
+.tie-wrap{background:#fffde7;border:1px solid var(--gold);border-radius:8px;padding:8px 10px;margin:4px 8px;}
+.tie-title{font-size:10px;font-weight:700;color:#856404;margin-bottom:5px;}
+.tie-opt{display:flex;gap:6px;flex-wrap:wrap;}
+.tie-btn{padding:5px 12px;border:1.5px solid #ffc107;background:#fff;border-radius:20px;font-size:11px;font-weight:700;color:#856404;cursor:pointer;}
+.tie-btn.sel{background:var(--gold);color:#fff;border-color:var(--gold);}
+
+/* Nav inferior grupos */
+.grupos-footer{background:var(--verde);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
+.grupos-footer-info{font-size:11px;color:rgba(255,255,255,0.45);}
+.nav-btns{display:flex;gap:6px;}
+.btn-prev{border:0.5px solid rgba(255,255,255,0.3);border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;background:transparent;}
+.btn-next{background:var(--gold);border:none;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;}
+
+/* ── PANTALLA ELIMINATORIA ── */
+.elim-content{padding:12px;flex:1;overflow-y:auto;}
+.tabs{display:flex;gap:5px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.tab{padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.tab.act{background:var(--dark);color:var(--gold);border-color:var(--dark);}
+.tab-c{display:none;}.tab-c.show{display:block;}
+
+/* Bracket */
+.bk-panel{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.bk-title{background:var(--dark);padding:10px 16px;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:var(--gold);text-align:center;}
+.bk-scroll{overflow-x:auto;padding:20px 14px;-webkit-overflow-scrolling:touch;}
+.bk-inner{position:relative;min-width:700px;}
+.bk-chdr{position:absolute;top:0;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:10px;letter-spacing:1px;color:#0b1354;text-transform:uppercase;line-height:1.1;}
+.bk-chdr small{display:block;font-family:'Outfit',Arial,sans-serif;font-size:7px;color:#8899aa;letter-spacing:0;text-transform:none;font-weight:600;}
+.bk-mref{position:absolute;font-size:7px;color:#8899aa;font-weight:600;letter-spacing:.3px;white-space:nowrap;}
+.bk-mpid{position:absolute;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:9px;color:#0b1354;font-weight:700;text-shadow:0 0 2px #fff;}
+.bk-slot{position:absolute;height:16px;background:#fff;border:1.5px solid #8095b8;border-radius:2px;display:flex;align-items:center;padding:0 4px;font-size:8px;font-weight:600;color:#0b1354;overflow:hidden;white-space:nowrap;}
+.bk-slot.has{border-color:#7090c0;color:#0b1354;background:#f0f4ff;}
+.bk-slot.win{background:#eafaf1;border-color:var(--green);color:#1a4a2a;}
+.bk-slot.champ{background:#fffde7;border-color:var(--gold);color:var(--dark);font-weight:800;}
+
+/* Eliminatoria partidos */
+.sec-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.sec-hdr{background:linear-gradient(135deg,#1b4332,#2d6a4f);padding:10px 16px;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:17px;letter-spacing:2px;color:#a7f3d0;text-align:center;}
+.eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:10px;}
+.me{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+.me.dn2{border-color:var(--green);background:#f7fdf7;}
+.me-ref{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:13px;color:var(--dark);margin-bottom:2px;letter-spacing:1px;}
+.ml{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;}
+.ml span{color:var(--gold);font-weight:700;}
+.mr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:5px;}
+.mt2{display:flex;flex-direction:column;gap:2px;}
+.mt2.rr{align-items:flex-end;text-align:right;}
+.mf2{font-size:18px;line-height:1;}
+.mn{font-weight:700;font-size:12px;line-height:1.3;}
+.mn.tbd{color:var(--muted);font-style:italic;font-weight:400;}
+.mn.res{color:var(--text);font-style:normal;}
+.mc{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ms{display:flex;align-items:center;gap:4px;}
+.msc{width:34px;height:32px;background:#fff;border:1.5px solid #ccc;color:var(--text);font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:18px;text-align:center;border-radius:7px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s;}
+.msc:focus{border-color:var(--gold);background:var(--gold2);}
+.msc.ok{border-color:var(--green);background:#eafaf1;}
+.msep{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:12px;color:#bbb;}
+.mpd{font-size:8px;color:#bbb;letter-spacing:1px;margin-top:2px;}
+.pnl{display:block;margin-top:6px;background:#fffde7;border:1px solid var(--gold);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#856404;cursor:pointer;width:100%;text-align:center;}
+.mt-tbl{width:100%;border-collapse:collapse;}
+.mt-tbl thead tr{background:#f0f8f4;}
+.mt-tbl thead th{padding:5px 6px;font-size:9px;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:center;border-bottom:1px solid var(--border);}
+.mt-tbl thead th.tls{text-align:left;}
+.mt-tbl tbody tr{border-bottom:1px solid #f0f1f3;}
+.mt-tbl tbody tr.q{background:#eafaf1;}.mt-tbl tbody tr.nq{background:#fff;}
+.mt-tbl td{padding:6px 6px;text-align:center;font-size:12px;vertical-align:middle;}
+.mt-tbl td.sl{text-align:left;font-weight:700;font-size:9px;padding-left:2px;white-space:nowrap;}
+.emp-combo{padding:6px 14px;font-size:13px;font-weight:700;color:var(--dark);letter-spacing:2px;border-bottom:1px solid var(--border);}
+.emp-combo span{font-size:20px;letter-spacing:4px;color:var(--green);}
+.emp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:6px 8px;}
+.emp-item{display:flex;align-items:center;gap:8px;background:#eafaf1;border:1px solid var(--green2);border-radius:8px;padding:5px 10px;}
+.emp-ref{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:12px;color:var(--dark);min-width:60px;letter-spacing:1px;}
+.emp-vs{font-size:11px;font-weight:600;color:#1e8449;}
+
+/* ── PANTALLA ESPECIALES ── */
+.esp-content{padding:20px 16px;flex:1;}
+.esp-title{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;}
+.esp-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.esp-card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.esp-label{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px;display:block;}
+.esp-inp{width:100%;background:var(--inp);border:1.5px solid var(--border);color:var(--dark);font-family:'Outfit',Arial,sans-serif;font-size:15px;font-weight:600;padding:11px 14px;border-radius:8px;outline:none;transition:border-color .15s;}
+.esp-inp:focus{border-color:var(--gold);}
+.esp-inp.ok{border-color:var(--green);}
+.esp-inp::placeholder{color:#ccc;font-size:13px;font-weight:400;}
+.esp-auto{font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+
+/* ── TOAST / MODAL ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--dark);color:#fff;padding:10px 20px;border-radius:9px;font-size:13px;z-index:600;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.ov{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px;}
+.ov.show{display:flex;}
+.mo{background:#fff;border:2px solid var(--gold);border-radius:16px;padding:26px 22px;max-width:360px;width:100%;text-align:center;}
+.mi{font-size:44px;margin-bottom:10px;}
+.mo h2{font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:24px;color:var(--dark);margin-bottom:8px;}
+.mo p{color:var(--muted);font-size:13px;margin-bottom:16px;}
+.mbs{display:flex;flex-direction:column;gap:8px;}
+.bpdf{background:var(--gold);color:#fff;border:none;font-family:'Bebas Neue','Arial Black',Arial,sans-serif;font-size:16px;letter-spacing:2px;padding:12px;border-radius:9px;cursor:pointer;width:100%;}
+.bcl{background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;padding:9px;border-radius:8px;cursor:pointer;width:100%;}
+</style>
+</head>
+<body>
+
+<!-- ══ PANTALLA 0: PORTADA ══ -->
+<div class="screen active" id="s0">
+  <div class="portada-hero">
+    <div class="topbar" style="position:absolute;top:0;left:0;right:0;z-index:10;background:transparent;padding:10px 14px;">
+      <div class="topbar-logo">🏆 QUINIELA MUNDIAL 2026</div>
+      <div style="display:flex;gap:6px;">
+        <button class="topbar-nav-btn" onclick="irA(1)">Grupos</button>
+        <button class="topbar-nav-btn" onclick="irA(2)">Elim.</button>
+        <button class="topbar-nav-btn" onclick="irA(3)">Esp.</button>
+        <div class="progress-pill" style="margin-left:4px;"><span id="pP">0%</span></div>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <div style="text-align:center;padding:52px 20px 10px;background:var(--verde);">
+        <div class="portada-subtitle">XXIII COPA MUNDIAL DE LA FIFA</div>
+        <div class="portada-title">USA · México · Canadá</div>
+        <div class="portada-dates">11 junio — 19 julio 2026</div>
+      </div>
+    </div>
+    <div class="mascotas-img-wrap" style="max-height:none;">
+      <img src="mascotas-mundial-2026.jpg" alt="Clutch, Zayu y Maple - Mascotas Mundial 2026" class="mascotas-img">
+    </div>
+  </div>
+  <div class="portada-body">
+    <div class="portada-label">Ingresa tus datos para comenzar</div>
+    <div class="input-row">
+      <input class="inp-name" id="pN" type="text" placeholder="Tu nombre completo" autocomplete="off" oninput="acNombre()">
+    </div>
+    <div id="ac-tip" style="display:none;background:#1a3a1a;border:1px solid #c9960c;border-radius:8px;padding:6px 10px;margin-top:4px;font-size:13px;color:#fff;max-height:180px;overflow-y:auto;"></div>
+    <div class="action-btns">
+      <button class="btn-guardar" onclick="guardarJSON()">💾 Descargar JSON</button>
+      <button class="btn-guardar" onclick="document.getElementById('jsonLoadInput').click()">📂 Subir JSON</button>
+      <button class="btn-pdf" onclick="pdfRapido()">📄 Descargar PDF</button>
+      <button class="btn-ver-quiniela" onclick="window.location.href='ver-quinielas.html'">👥 Ver quinielas</button>
+      <input type="file" id="jsonLoadInput" accept="application/json" style="display:none" onchange="subirJSON(event)">
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA 1: GRUPOS ══ -->
+<div class="screen" id="s1">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="topbar-back" onclick="volverDeGrupos()">←</span>
+      <span class="topbar-logo">🏆 GRUPOS</span>
+    </div>
+    <div class="progress-pill"><span id="pP1">0%</span></div>
+  </div>
+  <div class="grupos-nav-bar">
+    <div class="grupos-nav-label">SELECCIONA UN GRUPO</div>
+    <div class="grupos-grid" id="gbtnGrid"></div>
+  </div>
+  <div class="grupos-content" id="grupoContent"></div>
+  <div class="grupos-footer">
+    <div class="grupos-footer-info" id="grupoInfo">Grupo A de 12</div>
+    <div class="nav-btns">
+      <button class="btn-prev" onclick="navGrupo(-1)">← Ant</button>
+      <div id="btnGuardarGrupoWrap"></div>
+      <button class="btn-next" onclick="navGrupo(1)">Sig →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA 2: ELIMINATORIA ══ -->
+<div class="screen" id="s2">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="topbar-back" onclick="irA(0)">←</span>
+      <span class="topbar-logo">⚡ ELIMINATORIA</span>
+    </div>
+    <div class="progress-pill"><span id="pP2">0%</span></div>
+  </div>
+  <div class="elim-content">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button onclick="guardarElim()" style="background:var(--verde);border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">💾 Descargar JSON</button>
+    </div>
+    <div class="tab-c" id="tabC6"><div class="bk-panel"><div class="bk-title">🏆 BRACKET — CAMINO A LA FINAL</div><div class="bk-scroll"><div class="bk-inner" id="bkV"></div></div></div></div>
+    <div class="tabs">
+      <div class="tab act" onclick="showTab(0)">Dieciseisavos</div>
+      <div class="tab" onclick="showTab(1)">Octavos</div>
+      <div class="tab" onclick="showTab(2)">Cuartos</div>
+      <div class="tab" onclick="showTab(3)">Semis</div>
+      <div class="tab" onclick="showTab(4)">3er Puesto</div>
+      <div class="tab" onclick="showTab(5)">Final</div>
+      <div class="tab" onclick="showTab(6)" style="background:linear-gradient(135deg,#1a3a8f,#2451c7);color:#fff;border-color:#1a3a8f;">🏆 Bracket</div>
+    </div>
+    <div class="tab-c show" id="tabC0"><div id="mt3Sec"></div><div id="empSec"></div><div class="eg" id="oc"></div></div>
+    <div class="tab-c" id="tabC1"><div class="eg" id="cc"></div></div>
+    <div class="tab-c" id="tabC2"><div class="eg" id="qq"></div></div>
+    <div class="tab-c" id="tabC3"><div class="eg" id="ss"></div></div>
+    <div class="tab-c" id="tabC4"><div class="eg" id="t3"></div></div>
+    <div class="tab-c" id="tabC5"><div class="eg" id="f3"></div></div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA 3: ESPECIALES ══ -->
+<div class="screen" id="s3">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="topbar-back" onclick="irA(0)">←</span>
+      <span class="topbar-logo">⭐ ESPECIALES</span>
+    </div>
+    <div class="progress-pill"><span id="pP3">0%</span></div>
+  </div>
+  <div class="esp-content">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button onclick="guardarEsp()" style="background:var(--verde);border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;">💾 Descargar JSON</button>
+    </div>
+    <div class="esp-title">🏅 CUADRO DE HONOR</div>
+    <div class="esp-sub">El campeón y tercer puesto se llenan automáticamente cuando completas la eliminatoria.</div>
+    <div class="esp-card">
+      <span class="esp-label">🏆 Campeón del Mundial</span>
+      <input class="esp-inp" id="sp1" placeholder="Se llena automáticamente" readonly>
+      <div class="esp-auto" id="sp1auto">Completa la Final (P104) para ver el resultado</div>
+    </div>
+    <div class="esp-card">
+      <span class="esp-label">🥉 Tercer Puesto</span>
+      <input class="esp-inp" id="sp3" placeholder="Se llena automáticamente" readonly>
+      <div class="esp-auto" id="sp3auto">Completa el 3er Puesto (P103) para ver el resultado</div>
+    </div>
+    <div class="esp-card">
+      <span class="esp-label">⚽ Goleador del Torneo</span>
+      <input class="esp-inp" id="sp4" placeholder="Nombre del jugador" oninput="spK(this)">
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALES ══ -->
+<div class="ov" id="mOk"><div class="mo"><div class="mi">🎉</div><h2>¡Guardado!</h2><p>Tus predicciones están registradas. Descarga el PDF como comprobante.</p><div class="mbs"><button class="bpdf" onclick="genPDF()">📄 DESCARGAR PDF</button><button class="bcl" onclick="cerrar()">Cerrar</button></div></div></div>
+<div class="ov" id="mEr"><div class="mo"><div class="mi">⚠️</div><h2 style="color:var(--red)">Error</h2><p id="eM">Problema al enviar.</p><div class="mbs"><button class="bcl" onclick="document.getElementById('mEr').classList.remove('show')">Cerrar</button></div></div></div>
+<div class="toast" id="tst"></div>
+
+
+<script>
+// Flag helper: convert country name to flag <img> tag using flagcdn
+var _FC={"México":"mx","Sudáfrica":"za","Corea del Sur":"kr","República Checa":"cz","Canadá":"ca","Bosnia":"ba","Catar":"qa","Suiza":"ch","Brasil":"br","Marruecos":"ma","Haití":"ht","Escocia":"gb-sct","Estados Unidos":"us","Paraguay":"py","Australia":"au","Turquía":"tr","Alemania":"de","Curazao":"cw","Costa de Marfil":"ci","Ecuador":"ec","Países Bajos":"nl","Japón":"jp","Suecia":"se","Túnez":"tn","Bélgica":"be","Egipto":"eg","Irán":"ir","Nueva Zelanda":"nz","España":"es","Cabo Verde":"cv","Arabia Saudita":"sa","Uruguay":"uy","Francia":"fr","Senegal":"sn","Irak":"iq","Noruega":"no","Argentina":"ar","Argelia":"dz","Austria":"at","Jordania":"jo","Portugal":"pt","Gales":"gb-wls","Serbia":"rs","Colombia":"co","Inglaterra":"gb-eng","Camerún":"cm","Panamá":"pa","China":"cn","Uzbekistán":"uz","RD Congo":"cd","Croacia":"hr","Ghana":"gh"};
+function fI(name){var c=_FC[name];if(!c)return'';return'<img src="https://flagcdn.com/w40/'+c+'.png" alt="" style="width:22px;height:15px;vertical-align:middle;border-radius:2px;">';}
+
+// ── Lista de participantes ──
+var PARTICIPANTES=[
+  {nombre:'Oswaldo Leon'},
+  {nombre:'Carlos Dams'},
+  {nombre:'Randoll Gabriel Sarmiento Jimenez'}
+];
+
+// ── Autocompletado por nombre ──
+function acNombre(){
+  var v=document.getElementById('pN').value.trim().toLowerCase();
+  var tip=document.getElementById('ac-tip');
+  if(v.length<1){if(tip)tip.style.display='none';return;}
+
+  var matches=PARTICIPANTES.filter(function(p){
+    return p.nombre.toLowerCase().indexOf(v)>=0;
+  });
+
+  if(matches.length>0){
+    if(tip){
+      tip.innerHTML=matches.map(function(p){
+        return '<span class="ac-opt" onclick="acSelectNombre(\''+p.nombre.replace(/'/g,'\\\'')+'\')">'+p.nombre+'</span>';
+      }).join('');
+      tip.style.display='block';
+    }
+  } else {
+    if(tip){tip.textContent='Sin coincidencias';tip.style.display='block';}
+  }
+}
+
+function acSelectNombre(nombre){
+  document.getElementById('pN').value=nombre;
+  var tip=document.getElementById('ac-tip');
+  if(tip){tip.innerHTML='';tip.style.display='none';}
+  persistSaved();
+}
+
+var CMB=[{"groups":"EFGHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3F","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"DFGHIJKL","1A":"3H","1B":"3G","1D":"3I","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"DEGHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3D","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"DEFHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"DEFGIJKL","1A":"3E","1B":"3G","1D":"3I","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"DEFGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"DEFGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"DEFGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"DEFGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CFGHIJKL","1A":"3H","1B":"3G","1D":"3I","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CEGHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"CEFHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CEFGIJKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CEFGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CEFGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CEFGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"CEFGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CDGHIJKL","1A":"3H","1B":"3G","1D":"3I","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3K"},{"groups":"CDFHIJKL","1A":"3C","1B":"3J","1D":"3I","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDFGIJKL","1A":"3C","1B":"3G","1D":"3I","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDFGHJKL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDFGHIKL","1A":"3C","1B":"3G","1D":"3I","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDFGHIJL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"CDFGHIJK","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CDEHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"CDEGIJKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3K"},{"groups":"CDEGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"CDEGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"CDEGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3I"},{"groups":"CDEGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3H","1I":"3D","1K":"3I","1L":"3K"},{"groups":"CDEFIJKL","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFHJKL","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFHIKL","1A":"3C","1B":"3E","1D":"3I","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFHIJL","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"CDEFHIJK","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CDEFGJKL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFGIKL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFGIJL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"CDEFGIJK","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CDEFGHKL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"CDEFGHJL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3E"},{"groups":"CDEFGHJK","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3K"},{"groups":"CDEFGHIL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"CDEFGHIK","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"CDEFGHIJ","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3I"},{"groups":"BFGHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BEGHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3B","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BEFHIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BEFGIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BEFGHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BEFGHIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3F","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BEFGHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3H","1I":"3G","1K":"3L","1L":"3I"},{"groups":"BEFGHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3H","1I":"3G","1K":"3I","1L":"3K"},{"groups":"BDGHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BDFHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDFGIJKL","1A":"3I","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDFGHJKL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDFGHIKL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDFGHIJL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BDFGHIJK","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BDEHIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BDEGIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BDEGHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BDEGHIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BDEGHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3G","1K":"3L","1L":"3I"},{"groups":"BDEGHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3G","1K":"3I","1L":"3K"},{"groups":"BDEFIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BDEFHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BDEFGJKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFGIJL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BDEFGIJK","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BDEFGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BDEFGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3E"},{"groups":"BDEFGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3E","1L":"3K"},{"groups":"BDEFGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BDEFGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BDEFGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3E","1L":"3I"},{"groups":"BCGHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BCFHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCFGIJKL","1A":"3I","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCFGHJKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCFGHIKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCFGHIJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCFGHIJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCEHIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BCEGIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BCEGHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"BCEGHIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"BCEGHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3G","1K":"3L","1L":"3I"},{"groups":"BCEGHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3G","1K":"3I","1L":"3K"},{"groups":"BCEFIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCEFHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCEFGJKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFGIJL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCEFGIJK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCEFGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCEFGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3L","1L":"3E"},{"groups":"BCEFGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3E","1L":"3K"},{"groups":"BCEFGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCEFGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCEFGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3E","1L":"3I"},{"groups":"BCDHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDGIJKL","1A":"3I","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDGHJKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDGHIKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDGHIJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3I"},{"groups":"BCDGHIJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3I","1L":"3K"},{"groups":"BCDFIJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFHJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFHIKL","1A":"3C","1B":"3I","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFHIJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDFHIJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDFGJKL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFGIKL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFGIJL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDFGIJK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDFGHKL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDFGHJL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3J"},{"groups":"BCDFGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3D","1L":"3K"},{"groups":"BCDFGHIL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDFGHIK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDFGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3D","1L":"3I"},{"groups":"BCDEIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3I"},{"groups":"BCDEHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3I","1L":"3K"},{"groups":"BCDEGJKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEGIJL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3I"},{"groups":"BCDEGIJK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3I","1L":"3K"},{"groups":"BCDEGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3K"},{"groups":"BCDEGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3L","1L":"3E"},{"groups":"BCDEGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3E","1L":"3K"},{"groups":"BCDEGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3L","1L":"3I"},{"groups":"BCDEGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3H","1I":"3D","1K":"3I","1L":"3K"},{"groups":"BCDEGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3D","1K":"3E","1L":"3I"},{"groups":"BCDEFJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDEFIKL","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDEFIJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDEFIJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDEFHKL","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDEFHJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3E"},{"groups":"BCDEFHJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3K"},{"groups":"BCDEFHIL","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDEFHIK","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDEFHIJ","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3I"},{"groups":"BCDEFGKL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3L","1L":"3K"},{"groups":"BCDEFGJL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3L","1L":"3E"},{"groups":"BCDEFGJK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3E","1L":"3K"},{"groups":"BCDEFGIL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3L","1L":"3I"},{"groups":"BCDEFGIK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3E","1I":"3F","1K":"3I","1L":"3K"},{"groups":"BCDEFGIJ","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3J","1I":"3F","1K":"3E","1L":"3I"},{"groups":"BCDEFGHL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3L","1L":"3E"},{"groups":"BCDEFGHK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3K"},{"groups":"BCDEFGHJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3J","1I":"3F","1K":"3D","1L":"3E"},{"groups":"BCDEFGHI","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3H","1I":"3F","1K":"3E","1L":"3I"},{"groups":"AFGHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"AEGHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3A","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"AEFHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"AEFGIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"AEFGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"AEFGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"AEFGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"AEFGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3F","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ADGHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ADFHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADFGIJKL","1A":"3I","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADFGHJKL","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADFGHIKL","1A":"3H","1B":"3G","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADFGHIJL","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ADFGHIJK","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ADEHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ADEGIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ADEGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ADEGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ADEGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ADEGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ADEFIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFHJKL","1A":"3H","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFHIKL","1A":"3H","1B":"3E","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFHIJL","1A":"3H","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ADEFHIJK","1A":"3H","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ADEFGJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFGIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFGIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ADEFGIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ADEFGHKL","1A":"3H","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ADEFGHJL","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ADEFGHJK","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ADEFGHIL","1A":"3H","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ADEFGHIK","1A":"3H","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ADEFGHIJ","1A":"3H","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ACGHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ACFHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACFGIJKL","1A":"3I","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACFGHJKL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACFGHIKL","1A":"3H","1B":"3G","1D":"3I","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACFGHIJL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACFGHIJK","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACEHIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ACEGIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ACEGHJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ACEGHIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ACEGHIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ACEGHIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ACEFIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFHJKL","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFHIKL","1A":"3H","1B":"3E","1D":"3I","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFHIJL","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACEFHIJK","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACEFGJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFGIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFGIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACEFGIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACEFGHKL","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACEFGHJL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ACEFGHJK","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ACEFGHIL","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACEFGHIK","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACEFGHIJ","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ACDHIJKL","1A":"3H","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDGIJKL","1A":"3I","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDGHJKL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDGHIKL","1A":"3H","1B":"3G","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDGHIJL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDGHIJK","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDFIJKL","1A":"3C","1B":"3J","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDFHJKL","1A":"3H","1B":"3J","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDFHIKL","1A":"3H","1B":"3F","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDFHIJL","1A":"3H","1B":"3J","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDFHIJK","1A":"3H","1B":"3J","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDFGJKL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDFGIKL","1A":"3C","1B":"3G","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDFGIJL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACDFGIJK","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACDFGHKL","1A":"3H","1B":"3G","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDFGHJL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3H"},{"groups":"ACDFGHJK","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ACDFGHIL","1A":"3H","1B":"3G","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDFGHIK","1A":"3H","1B":"3G","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDFGHIJ","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ACDEIJKL","1A":"3E","1B":"3J","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEHJKL","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEHIKL","1A":"3H","1B":"3E","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEHIJL","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDEHIJK","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDEGJKL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEGIKL","1A":"3E","1B":"3G","1D":"3I","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEGIJL","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDEGIJK","1A":"3E","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDEGHKL","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEGHJL","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ACDEGHJK","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3K"},{"groups":"ACDEGHIL","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDEGHIK","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDEGHIJ","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3I"},{"groups":"ACDEFJKL","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDEFIKL","1A":"3C","1B":"3E","1D":"3I","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDEFIJL","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACDEFIJK","1A":"3C","1B":"3J","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACDEFHKL","1A":"3H","1B":"3E","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ACDEFHJL","1A":"3H","1B":"3J","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ACDEFHJK","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ACDEFHIL","1A":"3H","1B":"3E","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ACDEFHIK","1A":"3H","1B":"3E","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ACDEFHIJ","1A":"3H","1B":"3J","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ACDEFGKL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ACDEFGJL","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ACDEFGJK","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ACDEFGIL","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ACDEFGIK","1A":"3C","1B":"3G","1D":"3E","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ACDEFGIJ","1A":"3C","1B":"3G","1D":"3J","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ACDEFGHL","1A":"3H","1B":"3G","1D":"3F","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ACDEFGHK","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ACDEFGHJ","1A":"3H","1B":"3G","1D":"3J","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3E"},{"groups":"ACDEFGHI","1A":"3H","1B":"3G","1D":"3E","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ABGHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABFHIJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABFGIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABFGHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABFGHIKL","1A":"3H","1B":"3G","1D":"3B","1E":"3A","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABFGHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABFGHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABEHIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABEGIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABEGHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3H","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABEGHIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3A","1G":"3I","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABEGHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3H","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABEGHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3H","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABEFIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABEFHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABEFHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABEFHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABEFHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABEFGJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABEFGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3A","1G":"3I","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABEFGIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABEFGIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABEFGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABEFGHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3E"},{"groups":"ABEFGHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3E","1L":"3K"},{"groups":"ABEFGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABEFGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3F","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABEFGHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3E","1L":"3I"},{"groups":"ABDHIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABDGIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABDGHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABDGHIKL","1A":"3I","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABDGHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABDGHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABDFIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDFHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDFHIKL","1A":"3H","1B":"3I","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDFHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABDFHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABDFGJKL","1A":"3F","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABDFGIKL","1A":"3I","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDFGIJL","1A":"3F","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABDFGIJK","1A":"3F","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABDFGHKL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDFGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3J"},{"groups":"ABDFGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3J","1L":"3K"},{"groups":"ABDFGHIL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABDFGHIK","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABDFGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3J"},{"groups":"ABDEIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABDEHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABDEHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABDEHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABDEHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABDEGJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABDEGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3A","1G":"3I","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABDEGIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABDEGIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABDEGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABDEGHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3E"},{"groups":"ABDEGHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3E","1L":"3K"},{"groups":"ABDEGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABDEGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABDEGHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3E","1L":"3I"},{"groups":"ABDEFJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDEFIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDEFIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABDEFIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABDEFHKL","1A":"3H","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDEFHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABDEFHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABDEFHIL","1A":"3H","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABDEFHIK","1A":"3H","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABDEFHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABDEFGKL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABDEFGJL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3J"},{"groups":"ABDEFGJK","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3J","1L":"3K"},{"groups":"ABDEFGIL","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABDEFGIK","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABDEFGIJ","1A":"3E","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3J"},{"groups":"ABDEFGHL","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABDEFGHK","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABDEFGHJ","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3J"},{"groups":"ABDEFGHI","1A":"3H","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABCHIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABCGIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABCGHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABCGHIKL","1A":"3I","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABCGHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABCGHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABCFIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCFHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCFHIKL","1A":"3H","1B":"3I","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCFHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCFHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCFGJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABCFGIKL","1A":"3I","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCFGIJL","1A":"3C","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABCFGIJK","1A":"3C","1B":"3J","1D":"3B","1E":"3F","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABCFGHKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCFGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3J"},{"groups":"ABCFGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3J","1L":"3K"},{"groups":"ABCFGHIL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCFGHIK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCFGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3J"},{"groups":"ABCEIJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3A","1G":"3I","1I":"3C","1K":"3L","1L":"3K"},{"groups":"ABCEHJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABCEHIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABCEHIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABCEHIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABCEGJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABCEGIKL","1A":"3E","1B":"3G","1D":"3B","1E":"3A","1G":"3I","1I":"3C","1K":"3L","1L":"3K"},{"groups":"ABCEGIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABCEGIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABCEGHKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3K"},{"groups":"ABCEGHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3L","1L":"3E"},{"groups":"ABCEGHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3E","1L":"3K"},{"groups":"ABCEGHIL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3L","1L":"3I"},{"groups":"ABCEGHIK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3H","1K":"3I","1L":"3K"},{"groups":"ABCEGHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3G","1K":"3E","1L":"3I"},{"groups":"ABCEFJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCEFIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCEFIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCEFIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCEFHKL","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCEFHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABCEFHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABCEFHIL","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCEFHIK","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCEFHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABCEFGKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCEFGJL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3J"},{"groups":"ABCEFGJK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3J","1L":"3K"},{"groups":"ABCEFGIL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCEFGIK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCEFGIJ","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3I","1L":"3J"},{"groups":"ABCEFGHL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABCEFGHK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABCEFGHJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3J"},{"groups":"ABCEFGHI","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABCDIJKL","1A":"3I","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDHJKL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDHIKL","1A":"3H","1B":"3I","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDHIJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDHIJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDGJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3K"},{"groups":"ABCDGIKL","1A":"3I","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDGIJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3L","1L":"3I"},{"groups":"ABCDGIJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3G","1K":"3I","1L":"3K"},{"groups":"ABCDGHKL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDGHJL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3J"},{"groups":"ABCDGHJK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3J","1L":"3K"},{"groups":"ABCDGHIL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDGHIK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDGHIJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3J"},{"groups":"ABCDFJKL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCDFIKL","1A":"3C","1B":"3I","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCDFIJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCDFIJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCDFHKL","1A":"3H","1B":"3F","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDFHJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3H"},{"groups":"ABCDFHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ABCDFHIL","1A":"3H","1B":"3F","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDFHIK","1A":"3H","1B":"3F","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDFHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ABCDFGKL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCDFGJL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3J"},{"groups":"ABCDFGJK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3J","1L":"3K"},{"groups":"ABCDFGIL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCDFGIK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCDFGIJ","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3J"},{"groups":"ABCDFGHL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3H"},{"groups":"ABCDFGHK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ABCDFGHJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3J"},{"groups":"ABCDFGHI","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ABCDEJKL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDEIKL","1A":"3E","1B":"3I","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDEIJL","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDEIJK","1A":"3E","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDEHKL","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDEHJL","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ABCDEHJK","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3K"},{"groups":"ABCDEHIL","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDEHIK","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDEHIJ","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3I"},{"groups":"ABCDEGKL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3K"},{"groups":"ABCDEGJL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3J"},{"groups":"ABCDEGJK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3J","1L":"3K"},{"groups":"ABCDEGIL","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3I"},{"groups":"ABCDEGIK","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3K"},{"groups":"ABCDEGIJ","1A":"3E","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3I","1L":"3J"},{"groups":"ABCDEGHL","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ABCDEGHK","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3K"},{"groups":"ABCDEGHJ","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3J"},{"groups":"ABCDEGHI","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3E","1L":"3I"},{"groups":"ABCDEFKL","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3K"},{"groups":"ABCDEFJL","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABCDEFJK","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABCDEFIL","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3I"},{"groups":"ABCDEFIK","1A":"3C","1B":"3E","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3I","1L":"3K"},{"groups":"ABCDEFIJ","1A":"3C","1B":"3J","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABCDEFHL","1A":"3H","1B":"3F","1D":"3B","1E":"3C","1G":"3A","1I":"3D","1K":"3L","1L":"3E"},{"groups":"ABCDEFHK","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3K"},{"groups":"ABCDEFHJ","1A":"3H","1B":"3J","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3E"},{"groups":"ABCDEFHI","1A":"3H","1B":"3E","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3I"},{"groups":"ABCDEFGL","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3L","1L":"3E"},{"groups":"ABCDEFGK","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3K"},{"groups":"ABCDEFGJ","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3J"},{"groups":"ABCDEFGI","1A":"3C","1B":"3G","1D":"3B","1E":"3D","1G":"3A","1I":"3F","1K":"3E","1L":"3I"},{"groups":"ABCDEFGH","1A":"3H","1B":"3G","1D":"3B","1E":"3C","1G":"3A","1I":"3F","1K":"3D","1L":"3E"}];
+var GS=[
+{id:"A",eq:[{n:"México",f:"🇲🇽"},{n:"Sudáfrica",f:"🇿🇦"},{n:"Corea del Sur",f:"🇰🇷"},{n:"República Checa",f:"🇨🇿"}],pa:[{id:1,j:"J1",fe:"11/06",fL:"🇲🇽",lo:"México",fV:"🇿🇦",vi:"Sudáfrica"},{id:2,j:"J1",fe:"12/06",fL:"🇰🇷",lo:"Corea del Sur",fV:"🇨🇿",vi:"República Checa"},{id:25,j:"J2",fe:"18/06",fL:"🇨🇿",lo:"República Checa",fV:"🇿🇦",vi:"Sudáfrica"},{id:28,j:"J2",fe:"19/06",fL:"🇲🇽",lo:"México",fV:"🇰🇷",vi:"Corea del Sur"},{id:53,j:"J3",fe:"25/06",fL:"🇨🇿",lo:"República Checa",fV:"🇲🇽",vi:"México"},{id:54,j:"J3",fe:"25/06",fL:"🇿🇦",lo:"Sudáfrica",fV:"🇰🇷",vi:"Corea del Sur"}]},
+{id:"B",eq:[{n:"Canadá",f:"🇨🇦"},{n:"Bosnia",f:"🇧🇦"},{n:"Catar",f:"🇶🇦"},{n:"Suiza",f:"🇨🇭"}],pa:[{id:3,j:"J1",fe:"12/06",fL:"🇨🇦",lo:"Canadá",fV:"🇧🇦",vi:"Bosnia"},{id:8,j:"J1",fe:"13/06",fL:"🇶🇦",lo:"Catar",fV:"🇨🇭",vi:"Suiza"},{id:26,j:"J2",fe:"18/06",fL:"🇨🇭",lo:"Suiza",fV:"🇧🇦",vi:"Bosnia"},{id:27,j:"J2",fe:"19/06",fL:"🇨🇦",lo:"Canadá",fV:"🇶🇦",vi:"Catar"},{id:51,j:"J3",fe:"24/06",fL:"🇨🇭",lo:"Suiza",fV:"🇨🇦",vi:"Canadá"},{id:52,j:"J3",fe:"24/06",fL:"🇧🇦",lo:"Bosnia",fV:"🇶🇦",vi:"Catar"}]},
+{id:"C",eq:[{n:"Brasil",f:"🇧🇷"},{n:"Marruecos",f:"🇲🇦"},{n:"Haití",f:"🇭🇹"},{n:"Escocia",f:"🏴"}],pa:[{id:7,j:"J1",fe:"14/06",fL:"🇧🇷",lo:"Brasil",fV:"🇲🇦",vi:"Marruecos"},{id:5,j:"J1",fe:"14/06",fL:"🇭🇹",lo:"Haití",fV:"🏴",vi:"Escocia"},{id:30,j:"J2",fe:"20/06",fL:"🏴",lo:"Escocia",fV:"🇲🇦",vi:"Marruecos"},{id:29,j:"J2",fe:"20/06",fL:"🇧🇷",lo:"Brasil",fV:"🇭🇹",vi:"Haití"},{id:49,j:"J3",fe:"25/06",fL:"🏴",lo:"Escocia",fV:"🇧🇷",vi:"Brasil"},{id:50,j:"J3",fe:"25/06",fL:"🇲🇦",lo:"Marruecos",fV:"🇭🇹",vi:"Haití"}]},
+{id:"D",eq:[{n:"Estados Unidos",f:"🇺🇸"},{n:"Paraguay",f:"🇵🇾"},{n:"Australia",f:"🇦🇺"},{n:"Turquía",f:"🇹🇷"}],pa:[{id:4,j:"J1",fe:"13/06",fL:"🇺🇸",lo:"Estados Unidos",fV:"🇵🇾",vi:"Paraguay"},{id:6,j:"J1",fe:"14/06",fL:"🇦🇺",lo:"Australia",fV:"🇹🇷",vi:"Turquía"},{id:32,j:"J2",fe:"19/06",fL:"🇺🇸",lo:"Estados Unidos",fV:"🇦🇺",vi:"Australia"},{id:31,j:"J2",fe:"20/06",fL:"🇹🇷",lo:"Turquía",fV:"🇵🇾",vi:"Paraguay"},{id:59,j:"J3",fe:"26/06",fL:"🇹🇷",lo:"Turquía",fV:"🇺🇸",vi:"Estados Unidos"},{id:60,j:"J3",fe:"26/06",fL:"🇵🇾",lo:"Paraguay",fV:"🇦🇺",vi:"Australia"}]},
+{id:"E",eq:[{n:"Alemania",f:"🇩🇪"},{n:"Curazao",f:"🇨🇼"},{n:"Costa de Marfil",f:"🇨🇮"},{n:"Ecuador",f:"🇪🇨"}],pa:[{id:10,j:"J1",fe:"14/06",fL:"🇩🇪",lo:"Alemania",fV:"🇨🇼",vi:"Curazao"},{id:9,j:"J1",fe:"15/06",fL:"🇨🇮",lo:"Costa de Marfil",fV:"🇪🇨",vi:"Ecuador"},{id:33,j:"J2",fe:"20/06",fL:"🇩🇪",lo:"Alemania",fV:"🇨🇮",vi:"Costa de Marfil"},{id:34,j:"J2",fe:"21/06",fL:"🇪🇨",lo:"Ecuador",fV:"🇨🇼",vi:"Curazao"},{id:55,j:"J3",fe:"25/06",fL:"🇨🇼",lo:"Curazao",fV:"🇨🇮",vi:"Costa de Marfil"},{id:56,j:"J3",fe:"25/06",fL:"🇪🇨",lo:"Ecuador",fV:"🇩🇪",vi:"Alemania"}]},
+{id:"F",eq:[{n:"Países Bajos",f:"🇳🇱"},{n:"Japón",f:"🇯🇵"},{n:"Suecia",f:"🇸🇪"},{n:"Túnez",f:"🇹🇳"}],pa:[{id:11,j:"J1",fe:"14/06",fL:"🇳🇱",lo:"Países Bajos",fV:"🇯🇵",vi:"Japón"},{id:12,j:"J1",fe:"15/06",fL:"🇸🇪",lo:"Suecia",fV:"🇹🇳",vi:"Túnez"},{id:35,j:"J2",fe:"20/06",fL:"🇳🇱",lo:"Países Bajos",fV:"🇸🇪",vi:"Suecia"},{id:36,j:"J2",fe:"21/06",fL:"🇹🇳",lo:"Túnez",fV:"🇯🇵",vi:"Japón"},{id:57,j:"J3",fe:"26/06",fL:"🇯🇵",lo:"Japón",fV:"🇸🇪",vi:"Suecia"},{id:58,j:"J3",fe:"26/06",fL:"🇹🇳",lo:"Túnez",fV:"🇳🇱",vi:"Países Bajos"}]},
+{id:"G",eq:[{n:"Bélgica",f:"🇧🇪"},{n:"Egipto",f:"🇪🇬"},{n:"Irán",f:"🇮🇷"},{n:"Nueva Zelanda",f:"🇳🇿"}],pa:[{id:16,j:"J1",fe:"15/06",fL:"🇧🇪",lo:"Bélgica",fV:"🇪🇬",vi:"Egipto"},{id:15,j:"J1",fe:"16/06",fL:"🇮🇷",lo:"Irán",fV:"🇳🇿",vi:"Nueva Zelanda"},{id:39,j:"J2",fe:"21/06",fL:"🇧🇪",lo:"Bélgica",fV:"🇮🇷",vi:"Irán"},{id:40,j:"J2",fe:"22/06",fL:"🇳🇿",lo:"Nueva Zelanda",fV:"🇪🇬",vi:"Egipto"},{id:63,j:"J3",fe:"27/06",fL:"🇪🇬",lo:"Egipto",fV:"🇮🇷",vi:"Irán"},{id:64,j:"J3",fe:"27/06",fL:"🇳🇿",lo:"Nueva Zelanda",fV:"🇧🇪",vi:"Bélgica"}]},
+{id:"H",eq:[{n:"España",f:"🇪🇸"},{n:"Cabo Verde",f:"🇨🇻"},{n:"Arabia Saudita",f:"🇸🇦"},{n:"Uruguay",f:"🇺🇾"}],pa:[{id:14,j:"J1",fe:"15/06",fL:"🇪🇸",lo:"España",fV:"🇨🇻",vi:"Cabo Verde"},{id:13,j:"J1",fe:"16/06",fL:"🇸🇦",lo:"Arabia Saudita",fV:"🇺🇾",vi:"Uruguay"},{id:38,j:"J2",fe:"21/06",fL:"🇪🇸",lo:"España",fV:"🇸🇦",vi:"Arabia Saudita"},{id:37,j:"J2",fe:"22/06",fL:"🇺🇾",lo:"Uruguay",fV:"🇨🇻",vi:"Cabo Verde"},{id:65,j:"J3",fe:"27/06",fL:"🇨🇻",lo:"Cabo Verde",fV:"🇸🇦",vi:"Arabia Saudita"},{id:66,j:"J3",fe:"27/06",fL:"🇺🇾",lo:"Uruguay",fV:"🇪🇸",vi:"España"}]},
+{id:"I",eq:[{n:"Francia",f:"🇫🇷"},{n:"Senegal",f:"🇸🇳"},{n:"Irak",f:"🇮🇶"},{n:"Noruega",f:"🇳🇴"}],pa:[{id:17,j:"J1",fe:"16/06",fL:"🇫🇷",lo:"Francia",fV:"🇸🇳",vi:"Senegal"},{id:18,j:"J1",fe:"17/06",fL:"🇮🇶",lo:"Irak",fV:"🇳🇴",vi:"Noruega"},{id:42,j:"J2",fe:"22/06",fL:"🇫🇷",lo:"Francia",fV:"🇮🇶",vi:"Irak"},{id:41,j:"J2",fe:"23/06",fL:"🇳🇴",lo:"Noruega",fV:"🇸🇳",vi:"Senegal"},{id:61,j:"J3",fe:"26/06",fL:"🇳🇴",lo:"Noruega",fV:"🇫🇷",vi:"Francia"},{id:62,j:"J3",fe:"26/06",fL:"🇸🇳",lo:"Senegal",fV:"🇮🇶",vi:"Irak"}]},
+{id:"J",eq:[{n:"Argentina",f:"🇦🇷"},{n:"Argelia",f:"🇩🇿"},{n:"Austria",f:"🇦🇹"},{n:"Jordania",f:"🇯🇴"}],pa:[{id:19,j:"J1",fe:"17/06",fL:"🇦🇷",lo:"Argentina",fV:"🇩🇿",vi:"Argelia"},{id:20,j:"J1",fe:"17/06",fL:"🇦🇹",lo:"Austria",fV:"🇯🇴",vi:"Jordania"},{id:43,j:"J2",fe:"22/06",fL:"🇦🇷",lo:"Argentina",fV:"🇦🇹",vi:"Austria"},{id:44,j:"J2",fe:"23/06",fL:"🇯🇴",lo:"Jordania",fV:"🇩🇿",vi:"Argelia"},{id:69,j:"J3",fe:"28/06",fL:"🇩🇿",lo:"Argelia",fV:"🇦🇹",vi:"Austria"},{id:70,j:"J3",fe:"28/06",fL:"🇯🇴",lo:"Jordania",fV:"🇦🇷",vi:"Argentina"}]},
+{id:"K",eq:[{n:"Portugal",f:"🇵🇹"},{n:"RD Congo",f:"🇨🇩"},{n:"Uzbekistán",f:"🇺🇿"},{n:"Colombia",f:"🇨🇴"}],pa:[{id:23,j:"J1",fe:"17/06",fL:"🇵🇹",lo:"Portugal",fV:"🇨🇩",vi:"RD Congo"},{id:24,j:"J1",fe:"18/06",fL:"🇺🇿",lo:"Uzbekistán",fV:"🇨🇴",vi:"Colombia"},{id:47,j:"J2",fe:"23/06",fL:"🇵🇹",lo:"Portugal",fV:"🇺🇿",vi:"Uzbekistán"},{id:48,j:"J2",fe:"24/06",fL:"🇨🇴",lo:"Colombia",fV:"🇨🇩",vi:"RD Congo"},{id:71,j:"J3",fe:"28/06",fL:"🇨🇴",lo:"Colombia",fV:"🇵🇹",vi:"Portugal"},{id:72,j:"J3",fe:"28/06",fL:"🇨🇩",lo:"RD Congo",fV:"🇺🇿",vi:"Uzbekistán"}]},
+{id:"L",eq:[{n:"Inglaterra",f:"🏴"},{n:"Croacia",f:"🇭🇷"},{n:"Ghana",f:"🇬🇭"},{n:"Panamá",f:"🇵🇦"}],pa:[{id:22,j:"J1",fe:"17/06",fL:"🏴",lo:"Inglaterra",fV:"🇭🇷",vi:"Croacia"},{id:21,j:"J1",fe:"18/06",fL:"🇬🇭",lo:"Ghana",fV:"🇵🇦",vi:"Panamá"},{id:45,j:"J2",fe:"23/06",fL:"🏴",lo:"Inglaterra",fV:"🇬🇭",vi:"Ghana"},{id:46,j:"J2",fe:"24/06",fL:"🇵🇦",lo:"Panamá",fV:"🇭🇷",vi:"Croacia"},{id:67,j:"J3",fe:"27/06",fL:"🇵🇦",lo:"Panamá",fV:"🏴",vi:"Inglaterra"},{id:68,j:"J3",fe:"27/06",fL:"🇭🇷",lo:"Croacia",fV:"🇬🇭",vi:"Ghana"}]},
+];
+
+  var OCT = [
+    { id: 73, fe: '28/06', lr: '2A', vr: '2B', lrk: '2A', vrk: '2B' },
+    { id: 74, fe: '29/06', lr: '1E', vr: '3ABCDF', lrk: '1E', vrk: '3ABCDF' },
+    { id: 75, fe: '30/06', lr: '1F', vr: '2C', lrk: '1F', vrk: '2C' },
+    { id: 76, fe: '29/06', lr: '1C', vr: '2F', lrk: '1C', vrk: '2F' },
+    { id: 77, fe: '30/06', lr: '1I', vr: '3CDFGH', lrk: '1I', vrk: '3CDFGH' },
+    { id: 78, fe: '30/06', lr: '2E', vr: '2I', lrk: '2E', vrk: '2I' },
+    { id: 79, fe: '01/07', lr: '1A', vr: '3CEFHI', lrk: '1A', vrk: '3CEFHI' },
+    { id: 80, fe: '01/07', lr: '1L', vr: '3EHIJK', lrk: '1L', vrk: '3EHIJK' },
+    { id: 81, fe: '02/07', lr: '1D', vr: '3BEFIJ', lrk: '1D', vrk: '3BEFIJ' },
+    { id: 82, fe: '01/07', lr: '1G', vr: '3AEHIJ', lrk: '1G', vrk: '3AEHIJ' },
+    { id: 83, fe: '03/07', lr: '2K', vr: '2L', lrk: '2K', vrk: '2L' },
+    { id: 84, fe: '02/07', lr: '1H', vr: '2J', lrk: '1H', vrk: '2J' },
+    { id: 85, fe: '03/07', lr: '1B', vr: '3EFGIJ', lrk: '1B', vrk: '3EFGIJ' },
+    { id: 86, fe: '04/07', lr: '1J', vr: '2H', lrk: '1J', vrk: '2H' },
+    { id: 87, fe: '04/07', lr: '1K', vr: '3DEIJL', lrk: '1K', vrk: '3DEIJL' },
+    { id: 88, fe: '03/07', lr: '2D', vr: '2G', lrk: '2D', vrk: '2G' }
+  ];
+
+  var CUA = [
+    { id: 89, fe: '04/07', lp: 74, vp: 77 },
+    { id: 90, fe: '04/07', lp: 73, vp: 75 },
+    { id: 91, fe: '05/07', lp: 76, vp: 78 },
+    { id: 92, fe: '06/07', lp: 79, vp: 80 },
+    { id: 93, fe: '06/07', lp: 83, vp: 84 },
+    { id: 94, fe: '07/07', lp: 81, vp: 82 },
+    { id: 95, fe: '07/07', lp: 86, vp: 88 },
+    { id: 96, fe: '07/07', lp: 85, vp: 87 }
+  ];
+
+  var SEM = [
+    { id: 97, fe: '09/07', lp: 89, vp: 90 },
+    { id: 98, fe: '10/07', lp: 93, vp: 94 },
+    { id: 99, fe: '11/07', lp: 91, vp: 92 },
+    { id: 100, fe: '12/07', lp: 95, vp: 96 }
+  ];
+var SFM={101:{lp:97,vp:98},102:{lp:99,vp:100}};
+var TER=[{id:103,fe:'18/07',lp:101,vp:102,lsr:1,lr:'L101',vr:'L102'}];
+var FNL=[{id:104,fe:'19/07',lp:101,vp:102}];
+var SFNL=[{id:101,fe:'14/07',lp:97,vp:98},{id:102,fe:'15/07',lp:99,vp:100}];
+var BK_PAIRS=[[74,77],[73,75],[83,84],[81,82],[76,78],[79,80],[86,88],[85,87]];
+var BK_CUA=[[89,90],[93,94],[91,92],[95,96]];
+var BK_SF=[[97,98],[99,100]];
+var t3Ov={};
+  function cT(g) {
+    function getScore(m) {
+      var aEl = document.getElementById('gl_' + m.id), bEl = document.getElementById('gv_' + m.id);
+      var av = aEl ? aEl.value : (savedScores['gl_' + m.id] || '');
+      var bv = bEl ? bEl.value : (savedScores['gv_' + m.id] || '');
+      if (av === '' || bv === '') return null;
+      var x = parseInt(av), y = parseInt(bv);
+      if (isNaN(x) || isNaN(y)) return null;
+      return { x: x, y: y };
+    }
+
+    function baseStats(teamName) {
+      var p = 0, j = 0, w = 0, d = 0, l = 0, gf = 0, gc = 0;
+
+      g.pa.forEach(function (m) {
+        var s = getScore(m);
+        if (!s) return;
+
+        var isLocal = m.lo === teamName;
+        var isVisit = m.vi === teamName;
+        if (!isLocal && !isVisit) return;
+
+        j++;
+        var fa = isLocal ? s.x : s.y;
+        var ca = isLocal ? s.y : s.x;
+
+        gf += fa;
+        gc += ca;
+
+        if (fa > ca) { w++; p += 3; }
+        else if (fa === ca) { d++; p += 1; }
+        else l++;
+      });
+
+      return { p: p, j: j, w: w, d: d, l: l, gf: gf, gc: gc, dg: gf - gc };
+    }
+
+    function miniStats(teamName, tiedNames) {
+      var p = 0, gf = 0, gc = 0;
+
+      g.pa.forEach(function (m) {
+        var s = getScore(m);
+        if (!s) return;
+
+        var matchIsBetweenTied =
+          tiedNames.indexOf(m.lo) >= 0 &&
+          tiedNames.indexOf(m.vi) >= 0;
+
+        if (!matchIsBetweenTied) return;
+
+        var isLocal = m.lo === teamName;
+        var isVisit = m.vi === teamName;
+        if (!isLocal && !isVisit) return;
+
+        var fa = isLocal ? s.x : s.y;
+        var ca = isLocal ? s.y : s.x;
+
+        gf += fa;
+        gc += ca;
+
+        if (fa > ca) p += 3;
+        else if (fa === ca) p += 1;
+      });
+
+      return { hp: p, hgf: gf, hgc: gc, hdg: gf - gc };
+    }
+
+    var t = g.eq.map(function (e) {
+      var s = baseStats(e.n);
+      return {
+        n: e.n,
+        f: e.f,
+        p: s.p,
+        j: s.j,
+        w: s.w,
+        d: s.d,
+        l: s.l,
+        gf: s.gf,
+        gc: s.gc,
+        dg: s.dg,
+        hp: 0,
+        hdg: 0,
+        hgf: 0,
+        td: 0
+      };
+    });
+
+    // FIFA 2026 group ranking:
+    // 1) Points in all group matches
+    // 2) Points in matches between tied teams
+    // 3) Goal difference in matches between tied teams
+    // 4) Goals scored in matches between tied teams
+    // 5) Overall goal difference
+    // 6) Overall goals scored
+    // 7) Manual/fair-play/FIFA ranking fallback
+
+    t.sort(function (a, b) {
+      return b.p - a.p;
+    });
+
+    var finalOrder = [];
+
+    for (var i = 0; i < t.length;) {
+      var samePoints = t.filter(function (x) {
+        return x.p === t[i].p;
+      });
+
+      if (samePoints.length === 1) {
+        finalOrder.push(samePoints[0]);
+        i++;
+        continue;
+      }
+
+      var tiedNames = samePoints.map(function (x) { return x.n; });
+
+      samePoints.forEach(function (x) {
+        var hs = miniStats(x.n, tiedNames);
+        x.hp = hs.hp;
+        x.hdg = hs.hdg;
+        x.hgf = hs.hgf;
+      });
+
+      samePoints.sort(function (a, b) {
+        return b.hp - a.hp ||
+          b.hdg - a.hdg ||
+          b.hgf - a.hgf ||
+          b.dg - a.dg ||
+          b.gf - a.gf;
+      });
+
+      // Mark only teams still tied after all measurable criteria
+      samePoints.forEach(function (a) {
+        var stillTied = samePoints.filter(function (x) {
+          return x.hp === a.hp &&
+            x.hdg === a.hdg &&
+            x.hgf === a.hgf &&
+            x.dg === a.dg &&
+            x.gf === a.gf;
+        });
+
+        if (stillTied.length > 1) {
+          a.td = 1;
+        }
+      });
+
+      finalOrder = finalOrder.concat(samePoints);
+      i += samePoints.length;
+    }
+
+    t = finalOrder;
+
+    // Manual override for unresolved ties
+    var sel = document.getElementById('tie_g_' + g.id);
+    var tieVal = sel ? sel.value : (savedScores['tie_g_' + g.id] || '');
+
+    if (tieVal) {
+      for (var i = 0; i < t.length - 1; i++) {
+        if (t[i].td && t[i + 1].td && t[i + 1].n === tieVal) {
+          var tmp = t[i];
+          t[i] = t[i + 1];
+          t[i + 1] = tmp;
+          break;
+        }
+      }
+    }
+
+    return t;
+  }
+function gGT(gId,pos){var g=GS.find(function(x){return x.id===gId;});if(!g)return null;var t=cT(g);return pos<=t.length&&t[pos-1].j>0?{n:t[pos-1].n,f:t[pos-1].f}:null;}
+function gBT(){var r=[];GS.forEach(function(g){var t=cT(g);if(t.length>=3&&t[2].j>0)r.push({g:g.id,n:t[2].n,f:t[2].f,p:t[2].p,dg:t[2].dg,gf:t[2].gf});});
+  r.sort(function(a,b){return b.p-a.p||b.dg-a.dg||b.gf-a.gf;});
+  if(r.length>=9&&t3Ov.g){var idx=r.findIndex(function(x){return x.g===t3Ov.g;});if(idx>7){var tmp=r[7];r[7]=r[idx];r[idx]=tmp;}}
+  return r;}
+function setT3Tie(g){t3Ov={g:g};rMT3();rEmp();rBK();uEN();}
+function rOT(ref){if(!ref)return null;var m=ref.match(/^(\d)([A-L])$/);if(m)return gGT(m[2],parseInt(m[1]));
+  if(ref[0]==='3'&&ref.length>2){var bt=gBT();if(bt.length<8)return null;
+    var qs=bt.slice(0,8).map(function(t){return t.g;}).sort().join('');
+    var cb=CMB.find(function(c){return c.groups===qs;});if(!cb)return null;
+    var om=OCT.find(function(o){return o.vrk===ref;});if(!om)return null;
+    var tg=cb[om.lrk];if(!tg)return null;var gl=tg[1];
+    var th=bt.find(function(t){return t.g===gl;});return th?{n:th.n,f:th.f}:null;}return null;}
+function gEW(pid){var a=document.getElementById('egl_'+pid),b=document.getElementById('egv_'+pid);
+  if(!a||!b||a.value===''||b.value==='')return null;var x=parseInt(a.value),y=parseInt(b.value);if(isNaN(x)||isNaN(y))return null;
+  if(x===y){var s=document.getElementById('pen_'+pid);if(s&&s.value)return{s:s.value};return null;}return{s:x>y?'lo':'vi'};}
+function gEL(pid){var w=gEW(pid);return w?{s:w.s==='lo'?'vi':'lo'}:null;}
+function rMT(m,side){var o=OCT.find(function(x){return x.id===m.id;});if(o)return rOT(side==='lo'?o.lrk:o.vrk);
+  if(SFM[m.id]){var pp=side==='lo'?SFM[m.id].lp:SFM[m.id].vp;var w=gEW(pp);if(!w)return null;var pm=SEM.find(function(x){return x.id===pp;});if(pm)return rMT(pm,w.s);return null;}
+  if(m.lp||m.vp){var pp2=side==='lo'?m.lp:m.vp;var r=m.lsr?gEL(pp2):gEW(pp2);if(!r)return null;
+    var all=OCT.concat(CUA).concat(SEM).concat(FNL);var pm2=all.find(function(x){return x.id===pp2;});
+    if(!pm2&&SFM[pp2])pm2={id:pp2,lp:SFM[pp2].lp,vp:SFM[pp2].vp};if(pm2)return rMT(pm2,r.s);}return null;}
+function rG(){var c=document.getElementById('gc');GS.forEach(function(g){var w=document.createElement('div');w.className='gw';
+  var rs=g.pa.map(function(m){return'<tr id="tr_'+m.id+'"><td class="jr">'+m.j+'</td><td class="fl">'+m.fL+'</td><td class="nm">'+m.lo+'</td>'+
+    '<td class="std"><div class="sp2"><input class="sc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="gl_'+m.id+'" placeholder="" autocomplete="off" oninput="oS(this,\'gv_'+m.id+'\',\''+g.id+'\','+m.id+')">'+
+    '<span class="sep">:</span><input class="sc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="gv_'+m.id+'" placeholder="" autocomplete="off" oninput="oS(this,null,\''+g.id+'\','+m.id+')"></div></td>'+
+    '<td class="fl">'+m.fV+'</td><td class="nm">'+m.vi+'</td><td class="fe">'+m.fe+'</td></tr>';}).join('');
+  w.innerHTML='<div><div class="gh">GRUPO '+g.id+' <small>'+g.eq.map(function(e){return fI(e.n)+' '+e.n;}).join(' · ')+'</small></div>'+
+    '<table class="tp"><thead><tr><th colspan="3" style="text-align:left">LOCAL</th><th>MARCADOR</th><th colspan="2" style="text-align:left">VISITANTE</th><th></th></tr></thead><tbody>'+rs+'</tbody></table></div>'+
+    '<div class="tc"><div class="th2">TABLA · GRUPO '+g.id+'</div>'+
+    '<table class="tps"><thead><tr><th>#</th><th></th><th class="tls">SELECCIÓN</th><th>PTS</th><th>J</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th></tr></thead>'+
+    '<tbody id="tab_'+g.id+'"></tbody></table><div id="tieW_'+g.id+'"></div>'+
+    '<div class="ly"><span><span class="ld" style="background:var(--blue)"></span>Clasifica</span><span><span class="ld" style="background:var(--green)"></span>3er</span></div></div>';
+  c.appendChild(w);rT(g.id);});}
+function rT(gI){var g=GS.find(function(x){return x.id===gI;});var tb=document.getElementById('tab_'+gI);if(!tb)return;
+  var t=cT(g);var h='';t.forEach(function(e,i){var cl=i<2?'c'+(i+1):i===2?'c3':'';var dg=e.dg>0?'pp':e.dg<0?'nn':'';
+    h+='<tr class="'+cl+'"><td class="po'+(i<3?' top':'')+'">'+( i+1)+'</td><td class="f2">'+fI(e.n)+'</td><td class="sl">'+e.n+'</td><td class="pt2">'+e.p+'</td>'+
+    '<td class="nd">'+e.j+'</td><td class="nd">'+e.w+'</td><td class="nd">'+e.d+'</td><td class="nd">'+e.l+'</td>'+
+    '<td class="nd">'+e.gf+'</td><td class="nd">'+e.gc+'</td><td class="dg '+dg+'">'+(e.dg>0?'+':'')+e.dg+'</td></tr>';});
+  tb.innerHTML=h;
+  var tw=document.getElementById('tieW_'+gI);var tied=t.filter(function(e){return e.td;});
+  if(tied.length>=2){var pos=t.findIndex(function(e){return e.td;})+1;
+    var cv=document.getElementById('tie_g_'+gI);var cv2=cv?cv.value:'';
+    tw.innerHTML='<div class="tie-wrap"><div class="tie-title">⚖️ Empate en el puesto '+pos+' — ¿Quién va arriba?</div>'+
+      '<div class="tie-opt">'+tied.map(function(e){return'<div class="tie-btn'+(cv2===e.n?' sel':'')+'" onclick="setTie(\''+gI+'\',\''+e.n+'\')">'+fI(e.n)+' '+e.n+'</div>';}).join('')+
+      '</div><select id="tie_g_'+gI+'" style="display:none"><option value="'+cv2+'"></option>'+
+      tied.map(function(e){return'<option value="'+e.n+'">'+e.n+'</option>';}).join('')+'</select></div>';}
+  else tw.innerHTML='';}
+function setTie(gI,nm){var s=document.getElementById('tie_g_'+gI);if(s)s.value=nm;savedScores['tie_g_'+gI]=nm;rT(gI);uEN();rMT3();rEmp();rBK();}
+function soloEnterosPositivos(el){
+  if(!el) return;
+  var v = String(el.value || '').replace(/[^0-9]/g, '');
+  if(v.length > 1){
+    v = String(parseInt(v, 10));
+    if(v === 'NaN') v = '';
+  }
+  if(v !== ''){
+    var n = parseInt(v, 10);
+    if(isNaN(n)) v = '';
+    else {
+      if(n < 0) n = 0;
+      if(n > 99) n = 99;
+      v = String(n);
+    }
+  }
+  el.value = v;
+}
+
+document.addEventListener('keydown', function(e){
+  var el = e.target;
+  if(!el || !el.classList || !(el.classList.contains('sc') || el.classList.contains('msc'))) return;
+  if(e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-' || e.key === '.' || e.key === ','){
+    e.preventDefault();
+  }
+});
+
+function oS(inp,nId,gI,mI){soloEnterosPositivos(inp);savedScores[inp.id]=inp.value;inp.classList.toggle('ok',inp.value!=='');if(inp.value.length>=2&&nId)document.getElementById(nId).focus();
+  var a=document.getElementById('gl_'+mI),b=document.getElementById('gv_'+mI),tr=document.getElementById('tr_'+mI);
+  if(tr)tr.classList.toggle('dn',a&&b&&a.value!==''&&b.value!=='');rT(gI);uEN();rMT3();rEmp();rBK();uP();}
+function rE(cId,ms){var c=document.getElementById(cId);if(!c)return;ms.forEach(function(m){var d=document.createElement('div');d.className='me';d.id='me_'+m.id;
+  var ref=m.lr?(m.lr+' vs '+m.vr):('W'+m.lp+' vs W'+m.vp);var lo=m.lr||('W'+m.lp);var vi=m.vr||('W'+m.vp);
+  d.innerHTML='<div class="me-ref">'+ref+'</div><div class="ml">P'+m.id+' <span>'+m.fe+'</span></div>'+
+    '<div class="mr"><div class="mt2"><div class="mf2" id="fL_'+m.id+'"></div><div class="mn tbd" id="nL_'+m.id+'">'+lo+'</div></div>'+
+    '<div class="mc"><div class="ms"><input class="msc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="egl_'+m.id+'" placeholder="" autocomplete="off" oninput="oE(this,\'egv_'+m.id+'\','+m.id+')">'+
+    '<span class="msep">:</span><input class="msc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="egv_'+m.id+'" placeholder="" autocomplete="off" oninput="oE(this,null,'+m.id+')"></div>'+
+    '<div class="mpd">P'+m.id+'</div></div><div class="mt2 rr"><div class="mf2" id="fV_'+m.id+'"></div><div class="mn tbd" id="nV_'+m.id+'">'+vi+'</div></div></div>'+
+    '<div id="pw_'+m.id+'"></div>';c.appendChild(d);});}
+function oE(inp,nId,mI){soloEnterosPositivos(inp);inp.classList.toggle('ok',inp.value!=='');if(inp.value.length>=2&&nId)document.getElementById(nId).focus();
+  var a=document.getElementById('egl_'+mI),b=document.getElementById('egv_'+mI),me=document.getElementById('me_'+mI);
+  if(me)me.classList.toggle('dn2',a&&b&&a.value!==''&&b.value!=='');
+  var pw=document.getElementById('pw_'+mI);
+  if(pw&&a&&b&&a.value!==''&&b.value!==''){var x=parseInt(a.value),y=parseInt(b.value);
+    if(!isNaN(x)&&!isNaN(y)&&x===y){var ln=document.getElementById('nL_'+mI).textContent,vn=document.getElementById('nV_'+mI).textContent;
+      var currentPen=document.getElementById('pen_'+mI);
+      var oldPen=currentPen?currentPen.value:((savedValues&&savedValues['pen_'+mI])?savedValues['pen_'+mI]:'');
+      pw.innerHTML='<select class="pnl" id="pen_'+mI+'" onchange="persistSaved();uEN();rBK();uP()"><option value="">⚽ ¿Quién pasa?</option><option value="lo">'+ln+'</option><option value="vi">'+vn+'</option></select>';
+      var penEl=document.getElementById('pen_'+mI);if(penEl)penEl.value=oldPen;}
+    else pw.innerHTML='';}
+  uEN();rBK();uP();persistSaved();}
+function uEN(){var all=OCT.concat(CUA).concat(SEM).concat(SFNL).concat(TER).concat(FNL);
+  all.forEach(function(m){var lt=rMT(m,'lo'),vt=rMT(m,'vi');
+    var nL=document.getElementById('nL_'+m.id),nV=document.getElementById('nV_'+m.id),fL=document.getElementById('fL_'+m.id),fV=document.getElementById('fV_'+m.id);
+    if(nL){if(lt){nL.textContent=lt.n;nL.className='mn res';}else{nL.textContent=m.lr||('W'+m.lp);nL.className='mn tbd';}}
+    if(nV){if(vt){nV.textContent=vt.n;nV.className='mn res';}else{nV.textContent=m.vr||('W'+m.vp);nV.className='mn tbd';}}
+    if(fL)fL.innerHTML=lt?fI(lt.n):'';if(fV)fV.innerHTML=vt?fI(vt.n):'';}); }
+function rMT3(){var c=document.getElementById('mt3Sec');var ts=gBT();if(!ts.length){c.innerHTML='';return;}
+  var h='<div class="sec-wrap"><div class="sec-hdr">📊 MEJORES TERCEROS</div>'+
+    '<table class="mt-tbl"><thead><tr><th>#</th><th>Gr</th><th></th><th class="tls">Selección</th><th>Pts</th><th>DG</th><th>GF</th></tr></thead><tbody>';
+  ts.forEach(function(t,i){h+='<tr class="'+(i<8?'q':'nq')+'"><td style="font-family:\'Bebas Neue\',\'Arial Black\',Arial,sans-serif;font-size:15px;color:'+(i<8?'var(--green)':'var(--muted)')+'">'+(i+1)+'</td>'+
+    '<td style="font-weight:700">'+t.g+'</td><td style="font-size:14px">'+fI(t.n)+'</td><td class="sl">'+t.n+'</td>'+
+    '<td style="font-weight:700;color:var(--blue)">'+t.p+'</td><td style="color:var(--muted)">'+(t.dg>0?'+':'')+t.dg+'</td><td style="color:var(--muted)">'+t.gf+'</td></tr>';});
+  h+='</tbody></table>';
+  if(ts.length>=9){var t7=ts[7],t8=ts[8];if(t7.p===t8.p&&t7.dg===t8.dg&&t7.gf===t8.gf){
+    h+='<div class="tie-wrap"><div class="tie-title">⚖️ Empate en el puesto 8 — ¿Quién clasifica?</div><div class="tie-opt">'+
+      [t7,t8].map(function(t){return'<div class="tie-btn'+(t3Ov.g===t.g?' sel':'')+'" onclick="setT3Tie(\''+t.g+'\')">'+fI(t.n)+' '+t.n+'</div>';}).join('')+'</div></div>';}}
+  h+='</div>';c.innerHTML=h;}
+function rEmp(){var c=document.getElementById('empSec');var ts=gBT();if(ts.length<8){c.innerHTML='';return;}
+  var qs=ts.slice(0,8).map(function(t){return t.g;}).sort().join('');
+  var cb=CMB.find(function(x){return x.groups===qs;});
+  var h='<div class="sec-wrap"><div class="sec-hdr">🔀 EMPAREJAMIENTOS 3s</div><div class="emp-combo">Combinación: <span>'+qs+'</span></div>';
+  if(!cb){h+='<div style="padding:10px 14px;font-size:11px;color:var(--muted)">Completa los grupos para ver los cruces</div></div>';c.innerHTML=h;return;}
+  h+='<div class="emp-grid">';
+  ['1A','1B','1D','1E','1G','1I','1K','1L'].forEach(function(sl){var tg=cb[sl];if(!tg)return;var gl=tg[1];
+    var t1=gGT(sl[1],1);var t3=ts.find(function(t){return t.g===gl;});
+    h+='<div class="emp-item"><span class="emp-ref">'+sl+' vs 3'+gl+'</span><span class="emp-vs">'+(t1?t1.n:sl)+' vs '+(t3?t3.n:'3'+gl)+'</span></div>';});
+  h+='</div></div>';c.innerHTML=h;}
+
+function rBK(){
+  var bk=document.getElementById('bkV');bk.innerHTML='';
+  var SH=16,SG=1,CW=120,SW=36,HH=30,MH=SH*2+SG,fullMH=MH+11;
+  var cx=[];for(var i=0;i<5;i++)cx.push(i*(CW+SW));
+  // Headers
+  [{t:'DIECISEISAVOS',s:'(Round of 32)'},{t:'OCTAVOS',s:'(Round of 16)'},{t:'CUARTOS',s:'(Quarterfinals)'},{t:'SEMIFINALES',s:'(Semifinals)'},{t:'FINAL',s:''}].forEach(function(h,i){
+    var d=document.createElement('div');d.className='bk-chdr';d.style.left=cx[i]+'px';d.innerHTML=h.t+(h.s?'<small>'+h.s+'</small>':'');bk.appendChild(d);});
+  // Y positions
+  var pg=3,gg=10,y16=[],y=HH;
+  for(var i=0;i<16;i++){y16.push(y);y+=fullMH;if(i%2===1)y+=gg;else y+=pg;}
+  var totalH=y+20;
+  var y8=[];for(var i=0;i<8;i++){var t=y16[i*2],b=y16[i*2+1]+fullMH;y8.push((t+b)/2-fullMH/2);}
+  var y4=[];for(var i=0;i<4;i++){var t=y8[i*2],b=y8[i*2+1]+fullMH;y4.push((t+b)/2-fullMH/2);}
+  var ySF=[];for(var i=0;i<2;i++){var t=y4[i*2],b=y4[i*2+1]+fullMH;ySF.push((t+b)/2-fullMH/2);}
+  var yF=(ySF[0]+ySF[1]+fullMH)/2-fullMH/2;
+  var slW=CW-10;
+
+  function addM(m,x,y,side){
+    // Combined P-id + ref as single label: "P88 (2D vs 2G)"
+    var lbl=document.createElement('div');lbl.className='bk-mpid';
+    lbl.style.left=x+'px';lbl.style.top=y+'px';
+    lbl.textContent='P'+m.id+' ('+m.ref+')';lbl.style.fontSize='8px';lbl.style.color='#2c3e6b';bk.appendChild(lbl);
+    // Team names from data
+    var lt=null,vt=null;
+    if(side!==false){
+      var om=OCT.find(function(o){return o.id===m.id;});
+      if(om){lt=rMT(om,'lo');vt=rMT(om,'vi');}
+      else{
+        var all2=CUA.concat(SEM).concat(SFNL).concat(TER).concat(FNL);
+        var em=all2.find(function(o){return o.id===m.id;});
+        if(em){lt=rMT(em,'lo');vt=rMT(em,'vi');}
+      }
+    }
+    // Top slot
+    var s1=document.createElement('div');s1.className='bk-slot'+(lt?' has':'');
+    s1.style.left=x+'px';s1.style.top=(y+10)+'px';s1.style.width=slW+'px';s1.style.height=SH+'px';
+    s1.textContent=lt?lt.n:'';bk.appendChild(s1);
+    // Bot slot
+    var s2=document.createElement('div');s2.className='bk-slot'+(vt?' has':'');
+    s2.style.left=x+'px';s2.style.top=(y+10+SH+SG)+'px';s2.style.width=slW+'px';s2.style.height=SH+'px';
+    s2.textContent=vt?vt.n:'';bk.appendChild(s2);
+    return{mY:y+10+SH+SG/2,rX:x+slW,lX:x};}
+
+  // OCT data for bracket display order
+  var bkOCT=[
+    {ref:'1E vs 3ABCDF',id:74},{ref:'1I vs 3CDFGH',id:77},
+    {ref:'2A vs 2B',id:73},{ref:'1F vs 2C',id:75},
+    {ref:'2K vs 2L',id:83},{ref:'1H vs 2J',id:84},
+    {ref:'1D vs 3BEFIJ',id:81},{ref:'1G vs 3AEHIJ',id:82},
+    {ref:'1C vs 2F',id:76},{ref:'2E vs 2I',id:78},
+    {ref:'1A vs 3CEFHI',id:79},{ref:'1L vs 3EHIJK',id:80},
+    {ref:'1J vs 2H',id:86},{ref:'2D vs 2G',id:88},
+    {ref:'1B vs 3EFGIJ',id:85},{ref:'1K vs 3DEIJL',id:87}];
+  var bkCUA=[
+    {ref:'W74 vs W77',id:89},{ref:'W73 vs W75',id:90},
+    {ref:'W83 vs W84',id:93},{ref:'W81 vs W82',id:94},
+    {ref:'W76 vs W78',id:91},{ref:'W79 vs W80',id:92},
+    {ref:'W86 vs W88',id:95},{ref:'W85 vs W87',id:96}];
+  var bkSEM=[
+    {ref:'W89 vs W90',id:97},{ref:'W93 vs W94',id:98},
+    {ref:'W91 vs W92',id:99},{ref:'W95 vs W96',id:100}];
+  var bkSF2=[{ref:'W97 vs W98',id:101},{ref:'W99 vs W100',id:102}];
+  var bkFIN={ref:'W101 vs W102',id:104};
+
+  var p16=[],p8=[],p4=[],pSF2=[];
+  bkOCT.forEach(function(m,i){p16.push(addM(m,cx[0],y16[i],true));});
+  bkCUA.forEach(function(m,i){p8.push(addM(m,cx[1],y8[i],true));});
+  bkSEM.forEach(function(m,i){p4.push(addM(m,cx[2],y4[i],true));});
+  bkSF2.forEach(function(m,i){pSF2.push(addM(m,cx[3],ySF[i],true));});
+  var pF=addM(bkFIN,cx[4],yF,true);
+
+  bk.style.width=(cx[4]+CW)+'px';bk.style.height=totalH+'px';
+
+  // SVG lines
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',cx[4]+CW);svg.setAttribute('height',totalH);
+  svg.style.cssText='position:absolute;top:0;left:0;pointer-events:none;width:'+(cx[4]+CW)+'px;height:'+totalH+'px;';
+  bk.appendChild(svg);
+  function ln(x1,y1,x2,y2){var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke','#0b1354');l.setAttribute('stroke-width','1.2');svg.appendChild(l);}
+  function conn(pA,pB,pN){var mx=pA.rX+(pN.lX-pA.rX)/2;
+    ln(pA.rX,pA.mY,mx,pA.mY);ln(pB.rX,pB.mY,mx,pB.mY);
+    ln(mx,pA.mY,mx,pB.mY);ln(mx,(pA.mY+pB.mY)/2,pN.lX,pN.mY);}
+  for(var i=0;i<8;i++)conn(p16[i*2],p16[i*2+1],p8[i]);
+  for(var i=0;i<4;i++)conn(p8[i*2],p8[i*2+1],p4[i]);
+  for(var i=0;i<2;i++)conn(p4[i*2],p4[i*2+1],pSF2[i]);
+  conn(pSF2[0],pSF2[1],pF);
+}
+
+function showTab(n){document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('act',i===n);});for(var i=0;i<8;i++){var tc=document.getElementById('tabC'+i);if(tc)tc.classList.toggle('show',i===n);}if(n===6){rBK();}}
+function spK(i){i.classList.toggle('ok',i.value.trim()!=='');uP();persistSaved();}
+function uP(){var f=0,t=0;
+// Count visible group and eliminatoria score inputs
+document.querySelectorAll('.sc, .msc').forEach(function(i){t++;if(i.value!=='')f++;});
+// Count savedScores for groups not currently in DOM
+var visibleIds={};document.querySelectorAll('.sc').forEach(function(i){visibleIds[i.id]=true;});
+GS.forEach(function(g){g.pa.forEach(function(m){
+var glId='gl_'+m.id,gvId='gv_'+m.id;
+if(!visibleIds[glId]){t++;if(savedScores[glId])f++;}
+if(!visibleIds[gvId]){t++;if(savedScores[gvId])f++;}
+});});
+// Count manually-entered special fields only, not readonly auto-filled honor fields
+var sp4=document.getElementById('sp4');if(sp4){t++;if(sp4.value.trim()!=='')f++;}
+var pc=t>0?Math.round(f/t*100):0;
+var pP=document.getElementById('pP');if(pP)pP.textContent=pc+'%';
+var pP1=document.getElementById('pP1');if(pP1)pP1.textContent=pc+'%';
+var pP2=document.getElementById('pP2');if(pP2)pP2.textContent=pc+'%';
+var pP3=document.getElementById('pP3');if(pP3)pP3.textContent=pc+'%';
+autoHonor();}
+function autoHonor(){
+  function ganW(pid){
+    var gl=parseInt((document.getElementById('egl_'+pid)||{}).value);
+    var gv=parseInt((document.getElementById('egv_'+pid)||{}).value);
+    var lt=rMT(OCT.concat(CUA).concat(SEM).concat(SFNL).concat(TER).concat(FNL).find(function(m){return m.id===pid;})||{},'lo');
+    var vt=rMT(OCT.concat(CUA).concat(SEM).concat(SFNL).concat(TER).concat(FNL).find(function(m){return m.id===pid;})||{},'vi');
+    var ln=lt?lt.n:'',vn=vt?vt.n:'';
+    if(isNaN(gl)||isNaN(gv)||!ln&&!vn)return '';
+    if(gl>gv)return ln;
+    if(gv>gl)return vn;
+    var pen=document.getElementById('pen_'+pid);
+    if(pen&&pen.value==='lo')return ln;
+    if(pen&&pen.value==='vi')return vn;
+    return '';
+  }
+  var c104=ganW(104),c103=ganW(103);
+  var sp1=document.getElementById('sp1'),sp3=document.getElementById('sp3');
+  if(sp1&&c104){sp1.value=c104;sp1.classList.toggle('ok',true);}
+  if(sp3&&c103){sp3.value=c103;sp3.classList.toggle('ok',true);}
+}
+var dG=null;
+function rec(){var pr={grupos:{},ties:{},t3Ov:'',elim:{},esp:{}};GS.forEach(function(g){pr.grupos[g.id]=g.pa.map(function(m){var elL=document.getElementById('gl_'+m.id);var elV=document.getElementById('gv_'+m.id);var gL=elL?elL.value:(savedScores['gl_'+m.id]||''),gV=elV?elV.value:(savedScores['gv_'+m.id]||'');return{id:m.id,fe:m.fe,j:m.j,fL:m.fL,lo:m.lo,gL:gL,gV:gV,fV:m.fV,vi:m.vi,fecha:m.fe,jor:m.j,flagL:m.fL,local:m.lo,golL:gL,golV:gV,flagV:m.fV,visit:m.vi};});
+  // Incluir desempate manual de este grupo
+  var tieEl=document.getElementById('tie_g_'+g.id);
+  var tieVal=tieEl?tieEl.value:(savedScores['tie_g_'+g.id]||'');
+  if(tieVal) pr.ties[g.id]=tieVal;
+  // Incluir standings ya calculado con tiebreakers FIFA aplicados
+  var st=cT(g);pr.standings=pr.standings||{};
+  pr.standings[g.id]=st.map(function(e,i){return{n:e.n,p:e.p,j:e.j,w:e.w,d:e.d,l:e.l,gf:e.gf,gc:e.gc,dg:e.dg,pos:i+1};});
+});
+// Incluir desempate de mejor tercero
+pr.t3Ov=t3Ov&&t3Ov.g?t3Ov.g:'';
+OCT.concat(CUA).concat(SEM).concat(SFNL).concat(TER).concat(FNL).forEach(function(m){var lt=rMT(m,'lo'),vt=rMT(m,'vi');var penEl=document.getElementById('pen_'+m.id);var penVal=penEl?penEl.value:'';pr.elim[m.id]={id:m.id,fe:m.fe,j:m.j||'',lr:m.lr||'',vr:m.vr||'',lo:lt?lt.n:'',vi:vt?vt.n:'',fL:lt?lt.f:'',fV:vt?vt.f:'',gL:(document.getElementById('egl_'+m.id)||{}).value||'',gV:(document.getElementById('egv_'+m.id)||{}).value||'',pen:penVal};});pr.esp={c:(document.getElementById('sp1')||{}).value||'',t:(document.getElementById('sp3')||{}).value||'',g:(document.getElementById('sp4')||{}).value||''};return pr;}
+function enviar(){
+  // Compatibility fallback: old submit flow now downloads a JSON backup instead.
+  guardarJSON();
+}
+function genPDF(){if(!dG)return;
+// Guardar inputs visibles antes de calcular
+saveCurrentGroup();
+var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF('portrait','mm','a4');
+var nm=dG.n,pr=dG.p,W=210,H=297,M=5,y=0;
+var CW=W-M*2; // 200mm ancho útil
+// Colores fase de grupos
+var CGH=[44,62,80];    // header grupo oscuro
+var CGB=[212,160,23];  // gold letras header
+var CPH=[36,113,163];  // header columnas azul
+var CTH=[26,26,46];    // header tabla oscuro
+// Colores eliminatoria — uniforme azul claro
+var CE=[52,100,145];
+var CC=[26,42,58];
+var CEL=[232,240,248];
+var CEL2=[245,249,253];
+// Ancho eliminatoria (80% del CW, centrado)
+var EW=CW*0.82;
+var EX=M+(CW-EW)/2;
+
+function S(v){return v==null?'':''+v;}
+function NP(){doc.addPage();y=8;}
+function pie(){
+  doc.setFillColor(26,26,46);doc.rect(0,H-6,W,6,'F');
+  doc.setTextColor(212,160,23);doc.setFontSize(6);doc.setFont('helvetica','bold');
+  doc.text('QUINIELA MUNDIAL 2026 — '+S(nm).toUpperCase()+'   Pag. '+doc.internal.getNumberOfPages(),W/2,H-2,{align:'center'});
+}
+
+// ── Portada ──────────────────────────────────────────────────────────────────
+doc.setFillColor(26,26,46);doc.rect(0,0,W,18,'F');
+doc.setTextColor(212,160,23);doc.setFontSize(13);doc.setFont('helvetica','bold');
+doc.text('XXIII MUNDIAL USA / MEXICO / CANADA 2026',W/2,8,{align:'center'});
+doc.setFontSize(10);doc.setTextColor(200,200,220);
+doc.text(S(nm).toUpperCase(),W/2,14,{align:'center'});
+doc.setFontSize(6);doc.setTextColor(160,160,180);
+doc.text('Generado: '+new Date().toLocaleString('es-CO'),W/2,17,{align:'center'});
+y=21;
+
+// ── Calcular top 8 terceros ───────────────────────────────────────────────────
+var tercerosPDF=[];
+GS.forEach(function(g){
+  var t=cT(g);
+  if(t.length>=3&&t[2].j>0){
+    tercerosPDF.push({g:g.id,n:t[2].n,p:t[2].p,dg:t[2].dg,gf:t[2].gf});
+  }
+});
+tercerosPDF.sort(function(a,b){return b.p-a.p||b.dg-a.dg||b.gf-a.gf;});
+var top8PDF={};
+for(var ti=0;ti<Math.min(8,tercerosPDF.length);ti++){top8PDF[tercerosPDF[ti].g]=true;}
+
+// ── PÁGINA 1: GRUPOS — uno por fila, partidos izq + tabla der ────────────────
+// Proporciones: 56% partidos, 44% tabla (dentro de CW)
+var PW=Math.floor(CW*0.56);
+var TW=CW-PW-2;
+var PX=M, TX=M+PW+2;
+var RHg=3.5; // altura fila partido
+var RHt=3.3; // altura fila tabla
+
+GS.forEach(function(g){
+  var ps=(pr.grupos&&pr.grupos[g.id])||[];
+  var psMap={};ps.forEach(function(p){psMap[p.id]=p;});
+  var tabla=cT(g);
+  // Altura total del bloque: hdr(4) + colhdr(3) + 6partidos + tablahdr(2.8) + 4filas + gap(2)
+  var bh=4+3+(g.pa.length*RHg)+2.8+(tabla.length*RHt)+2;
+  if(y+bh>H-8)NP();
+
+  // ── Header grupo (ancho completo) ──
+  doc.setFillColor(CGH[0],CGH[1],CGH[2]);doc.rect(M,y,CW,4,'F');
+  doc.setTextColor(CGB[0],CGB[1],CGB[2]);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+  doc.text('GRUPO '+g.id,M+2,y+2.9);
+  doc.setFontSize(5);doc.setTextColor(200,200,220);doc.setFont('helvetica','normal');
+  var eqStr=g.eq.map(function(e){return e.n;}).join(' · ');
+  if(eqStr.length>55)eqStr=eqStr.substring(0,55)+'..';
+  doc.text(eqStr,M+20,y+2.9);
+  y+=4;
+
+  // ── Cabecera partidos ──
+  doc.setFillColor(CPH[0],CPH[1],CPH[2]);doc.rect(PX,y,PW,3,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(5);doc.setFont('helvetica','bold');
+  // Layout: Jor(2-9) | Local(right-aligned hasta GL) | GL(0.50) : GV(0.62) | Visitante(left desde 0.66) | Fecha(final)
+  doc.text('Jor.',PX+2,y+2.1);
+  doc.text('Local',PX+PW*0.50,y+2.1,{align:'right'});
+  doc.text('GL',PX+PW*0.535,y+2.1,{align:'center'});
+  doc.text(':',PX+PW*0.575,y+2.1,{align:'center'});
+  doc.text('GV',PX+PW*0.615,y+2.1,{align:'center'});
+  doc.text('Visitante',PX+PW*0.65,y+2.1);
+  doc.text('Fecha',PX+PW-1,y+2.1,{align:'right'});
+
+  // ── Cabecera tabla ──
+  doc.setFillColor(CTH[0],CTH[1],CTH[2]);doc.rect(TX,y,TW,3,'F');
+  doc.setTextColor(200,200,220);doc.setFontSize(4.8);doc.setFont('helvetica','bold');
+  doc.text('Pos',TX+1,y+2.1);
+  doc.text('Seleccion',TX+9,y+2.1);
+  doc.text('Pts',TX+TW*0.60,y+2.1,{align:'center'});
+  doc.text('GF',TX+TW*0.72,y+2.1,{align:'center'});
+  doc.text('GC',TX+TW*0.83,y+2.1,{align:'center'});
+  doc.text('DG',TX+TW*0.94,y+2.1,{align:'center'});
+  y+=3;
+
+  // ── Filas en paralelo ──
+  var yP=y, yT=y;
+
+  g.pa.forEach(function(p,idx){
+    var d=psMap[p.id]||{};
+    var gl=S(d.gL||d.golL||''),gv=S(d.gV||d.golV||'');
+    var bg=idx%2===0?[248,249,250]:[255,255,255];
+    doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(PX,yP,PW,RHg,'F');
+    // Jor
+    doc.setTextColor(100,100,110);doc.setFontSize(5);doc.setFont('helvetica','normal');
+    doc.text(S(p.j),PX+2,yP+2.4);
+    // Local — alineado a la DERECHA (cerca de GL)
+    doc.setTextColor(44,62,80);doc.setFontSize(5);doc.setFont('helvetica','bold');
+    doc.text(S(p.lo).substring(0,18),PX+PW*0.50,yP+2.4,{align:'right'});
+    // Marcador
+    if(gl&&gv){doc.setTextColor(26,26,46);}else{doc.setTextColor(180,180,180);}
+    doc.setFontSize(6);
+    doc.text(gl||'-',PX+PW*0.535,yP+2.6,{align:'center'});
+    doc.text(':',PX+PW*0.575,yP+2.6,{align:'center'});
+    doc.text(gv||'-',PX+PW*0.615,yP+2.6,{align:'center'});
+    // Visitante — alineado a la IZQUIERDA (cerca de GV)
+    doc.setTextColor(44,62,80);doc.setFontSize(5);doc.setFont('helvetica','bold');
+    doc.text(S(p.vi).substring(0,18),PX+PW*0.65,yP+2.4);
+    // Fecha — alineada a la derecha al final
+    doc.setTextColor(150,150,150);doc.setFontSize(4.5);doc.setFont('helvetica','normal');
+    doc.text(S(p.fe),PX+PW-1,yP+2.4,{align:'right'});
+    yP+=RHg;
+  });
+
+  tabla.forEach(function(eq,idx){
+    var bg2=idx<2?[220,235,255]:(idx===2?[220,245,220]:[255,255,255]);
+    doc.setFillColor(bg2[0],bg2[1],bg2[2]);doc.rect(TX,yT,TW,RHt,'F');
+    var fc=idx<2?[36,113,163]:[44,62,80];
+    doc.setTextColor(fc[0],fc[1],fc[2]);doc.setFontSize(4.8);doc.setFont('helvetica',idx<2?'bold':'normal');
+    doc.text(S(idx+1),TX+2,yT+2.3);
+    doc.text(S(eq.n).substring(0,14),TX+9,yT+2.3);
+    // Campos correctos de cT(): p=pts, gf, gc, dg
+    doc.setFont('helvetica','bold');
+    doc.text(S(eq.p),TX+TW*0.60,yT+2.3,{align:'center'});
+    doc.setFont('helvetica','normal');
+    doc.text(S(eq.gf),TX+TW*0.72,yT+2.3,{align:'center'});
+    doc.text(S(eq.gc),TX+TW*0.83,yT+2.3,{align:'center'});
+    var dgs=eq.dg>0?'+'+S(eq.dg):S(eq.dg);
+    if(eq.dg>0)doc.setTextColor(30,132,73);else if(eq.dg<0)doc.setTextColor(192,57,43);
+    doc.text(dgs,TX+TW*0.94,yT+2.3,{align:'center'});
+    yT+=RHt;
+  });
+
+  y=Math.max(yP,yT)+2;
+});
+pie();
+
+// ── CLASIFICADOS POR GRUPO — inmediatamente después de grupos ─────────────────
+if(y+60>H-8)NP();  // solo saltar si no hay espacio mínimo
+
+// Tabla clasificados por grupo
+doc.setFillColor(CE[0],CE[1],CE[2]);doc.rect(EX,y,EW,5,'F');
+doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+doc.text('CLASIFICADOS POR GRUPO',W/2,y+3.5,{align:'center'});y+=5;
+doc.setFillColor(CC[0],CC[1],CC[2]);doc.rect(EX,y,EW,3,'F');
+doc.setTextColor(200,210,220);doc.setFontSize(5);doc.setFont('helvetica','bold');
+doc.text('Grupo',EX+2,y+2.1);
+doc.text('1er Clasificado',EX+16,y+2.1);
+doc.text('2do Clasificado',EX+EW*0.40,y+2.1);
+doc.text('3er Clasificado (Top 8)',EX+EW*0.72,y+2.1);
+y+=3;
+['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(function(gId,idx){
+  var bg=idx%2===0?CEL:CEL2;
+  doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(EX,y,EW,3.5,'F');
+  var tbl2=cT(GS.find(function(x){return x.id===gId;}));
+  doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+  doc.text(gId,EX+3,y+2.5);
+  var p1=tbl2[0]?tbl2[0].n:'';
+  var p2=tbl2[1]?tbl2[1].n:'';
+  var p3=(tbl2[2]&&top8PDF[gId])?tbl2[2].n:'-';
+  doc.setTextColor(30,100,30);doc.text(p1.substring(0,20),EX+16,y+2.5);
+  doc.setTextColor(36,80,163);doc.text(p2.substring(0,20),EX+EW*0.40,y+2.5);
+  doc.setTextColor(p3==='-'?150:80,p3==='-'?150:50,p3==='-'?150:120);
+  doc.text(p3.substring(0,20),EX+EW*0.72,y+2.5);
+  y+=3.5;
+});
+y+=3;
+
+// ── Helpers eliminatoria ──────────────────────────────────────────────────────
+var RHe=3.8;
+
+// Determina el equipo ganador de un partido eliminatorio considerando empates con penales
+function ganadorPDF(id){
+  var p=(pr.elim&&pr.elim[id])||{};
+  var lo=S(p.lo||''),vi=S(p.vi||'');
+  if(!lo&&!vi)return '';
+  var gl=parseInt(p.gL),gv=parseInt(p.gV);
+  if(isNaN(gl)||isNaN(gv))return '';
+  if(gl>gv)return lo;
+  if(gv>gl)return vi;
+  // empate — leer pen como string 'lo' o 'vi'
+  var pen=S(p.pen||'');
+  if(pen==='lo')return lo;
+  if(pen==='vi')return vi;
+  return '';
+}
+
+function faseElim(titulo,partidos){
+  // Calcular altura total de esta fase para decidir si salta página
+  var altFase=5+3+(partidos.length*RHe)+2;
+  if(y+altFase>H-8)NP();
+  doc.setFillColor(CE[0],CE[1],CE[2]);doc.rect(EX,y,EW,5,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  doc.text(titulo,W/2,y+3.5,{align:'center'});y+=5;
+  // Columnas mejor distribuidas: # más ancho, Fecha y Jor más anchos
+  // Local con right-align cerca de GL, Visitante con left-align cerca de GV
+  var C={
+    n:  EX+4,
+    fe: EX+11,
+    jr: EX+27,
+    loEnd: EX+EW*0.50,    // Local termina aquí (right-aligned)
+    gl: EX+EW*0.535,
+    sep:EX+EW*0.575,
+    gv: EX+EW*0.615,
+    viStart: EX+EW*0.65,  // Visitante empieza aquí (left-aligned)
+    lv: EX+EW-2
+  };
+  doc.setFillColor(CC[0],CC[1],CC[2]);doc.rect(EX,y,EW,3,'F');
+  doc.setTextColor(200,210,220);doc.setFontSize(5);doc.setFont('helvetica','bold');
+  doc.text('#',C.n,y+2.1,{align:'center'});
+  doc.text('Fecha',C.fe,y+2.1);
+  doc.text('Jor.',C.jr,y+2.1);
+  doc.text('Local',C.loEnd,y+2.1,{align:'right'});
+  doc.text('GL',C.gl,y+2.1,{align:'center'});
+  doc.text(':',C.sep,y+2.1,{align:'center'});
+  doc.text('GV',C.gv,y+2.1,{align:'center'});
+  doc.text('Visitante',C.viStart,y+2.1);
+  doc.text('Llave',C.lv,y+2.1,{align:'right'});
+  y+=3;
+  var sorted=partidos.slice().sort(function(a,b){return a.id-b.id;});
+  sorted.forEach(function(m,idx){
+    if(y>H-10)NP();
+    var p=(pr.elim&&pr.elim[m.id])||{};
+    var bg=idx%2===0?CEL:CEL2;
+    doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(EX,y,EW,RHe,'F');
+    // # del partido
+    doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+    doc.text(S(m.id),C.n,y+2.6,{align:'center'});
+    // Fecha y Jor
+    doc.setTextColor(100,110,120);doc.setFontSize(5);doc.setFont('helvetica','normal');
+    doc.text(S(m.fe||''),C.fe,y+2.6);
+    doc.text(S(m.j||''),C.jr,y+2.6);
+    // Local — alineado a la DERECHA, cerca del GL
+    doc.setTextColor(30,50,80);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+    doc.text(S(p.lo||'').substring(0,22),C.loEnd,y+2.6,{align:'right'});
+    // Marcador
+    var gl2=S(p.gL||''),gv2=S(p.gV||'');
+    if(gl2&&gv2){doc.setTextColor(26,46,80);}else{doc.setTextColor(180,190,200);}
+    doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+    doc.text(gl2||'-',C.gl,y+2.8,{align:'center'});
+    doc.text(':',C.sep,y+2.8,{align:'center'});
+    doc.text(gv2||'-',C.gv,y+2.8,{align:'center'});
+    // Visitante — alineado a la IZQUIERDA, cerca del GV
+    doc.setTextColor(30,50,80);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+    doc.text(S(p.vi||'').substring(0,22),C.viStart,y+2.6);
+    // Llave — construir según el tipo de fase
+    var llave='';
+    if(m.lr&&m.vr){
+      llave=m.lr+'-'+m.vr;  // OCT, TER ya tienen lr/vr
+    } else if(m.lp&&m.vp){
+      // CUA, SEM, SFNL, FNL: construir desde lp/vp
+      llave='W'+m.lp+'-W'+m.vp;
+    }
+    doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(5);
+    doc.text(llave,C.lv,y+2.6,{align:'right'});
+    y+=RHe;
+  });
+  y+=2;
+}
+
+function clasifElim(titulo,ids){
+  var mid=Math.ceil(ids.length/2);
+  var altClasif=4+(mid*3.2)+2;
+  if(y+altClasif>H-8)NP();
+  doc.setFillColor(CC[0],CC[1],CC[2]);doc.rect(EX,y,EW,4,'F');
+  doc.setTextColor(200,210,220);doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+  doc.text(titulo,W/2,y+2.8,{align:'center'});y+=4;
+  var col1=ids.slice(0,mid),col2=ids.slice(mid);
+  var colW=col2.length>0?(EW-3)/2:EW;
+  for(var ii=0;ii<Math.max(col1.length,col2.length);ii++){
+    var bg=ii%2===0?CEL:CEL2;
+    if(col1[ii]!==undefined){
+      var pid1=col1[ii];
+      var w1=ganadorPDF(pid1);
+      doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(EX,y,colW,3.2,'F');
+      doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+      doc.text('P'+S(pid1),EX+2,y+2.2);
+      doc.setTextColor(30,70,120);doc.setFontSize(5.5);
+      doc.text(w1?w1.substring(0,22):'Por definir',EX+14,y+2.2);
+    }
+    if(col2[ii]!==undefined){
+      var pid2=col2[ii];
+      var w2=ganadorPDF(pid2);
+      doc.setFillColor(bg[0],bg[1],bg[2]);doc.rect(EX+colW+3,y,colW,3.2,'F');
+      doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+      doc.text('P'+S(pid2),EX+colW+5,y+2.2);
+      doc.setTextColor(30,70,120);doc.setFontSize(5.5);
+      doc.text(w2?w2.substring(0,22):'Por definir',EX+colW+17,y+2.2);
+    }
+    y+=3.2;
+  }
+  y+=2;
+}
+
+y+=10;
+faseElim('DIECISEISAVOS DE FINAL',OCT);
+clasifElim('Clasificados a Octavos de Final',[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88]);
+y+=10;
+faseElim('OCTAVOS DE FINAL',CUA);
+clasifElim('Clasificados a Cuartos de Final',[89,90,91,92,93,94,95,96]);
+y+=10;
+faseElim('CUARTOS DE FINAL',SEM);
+clasifElim('Clasificados a Semifinales',[97,98,99,100]);
+y+=10;
+faseElim('SEMIFINALES',SFNL);
+clasifElim('Clasificados a la Gran Final',[101,102]);
+y+=10;
+faseElim('TERCER LUGAR',TER);
+y+=10;
+faseElim('GRAN FINAL',FNL);
+
+// ── Cuadro de honor ───────────────────────────────────────────────────────────
+// Campeón = ganador P104, Tercer Puesto = ganador P103, Goleador = manual
+if(y>H-28)NP();
+doc.setFillColor(26,26,46);doc.rect(EX,y,EW,5,'F');
+doc.setTextColor(212,160,23);doc.setFontSize(8);doc.setFont('helvetica','bold');
+doc.text('CUADRO DE HONOR',W/2,y+3.5,{align:'center'});y+=5;
+var ep=(pr.esp)||{};
+var honW2=EW/3;
+[['CAMPEON',ganadorPDF(104)||'Sin indicar',[220,235,255]],
+ ['TERCER PUESTO',ganadorPDF(103)||'Sin indicar',[210,230,255]],
+ ['GOLEADOR',S(ep.g||'Sin indicar'),[200,225,255]]
+].forEach(function(h,i){
+  var hx=EX+(i*honW2);
+  doc.setFillColor(h[2][0],h[2][1],h[2][2]);
+  doc.rect(hx,y,honW2-1,12,'F');
+  doc.setTextColor(30,60,100);doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+  doc.text(S(h[0]),hx+(honW2-1)/2,y+4,{align:'center'});
+  doc.setTextColor(CE[0],CE[1],CE[2]);doc.setFontSize(8);
+  doc.text(S(h[1]).substring(0,16),hx+(honW2-1)/2,y+9,{align:'center'});
+});
+pie();
+var filename = 'Quiniela-2026-'+S(nm).replace(/\s+/g,'-')+'.pdf';
+try{
+  // Prefer built-in save
+  if(typeof doc.save === 'function'){
+    doc.save(filename);
+  } else {
+    // Fallback: create blob and download
+    var blob = doc.output && doc.output('blob');
+    if(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 15000);
+    }
+  }
+  shT('PDF descargado');
+}catch(e){
+  try{
+    var blob = doc.output('blob'); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },15000);
+    shT('PDF descargado (fallback)');
+  }catch(err){
+    console.error('PDF save failed',err); shT('Error al generar PDF');
+  }
+}
+}
+
+
+function getNombreHoja(){
+  var nm=document.getElementById('pN').value.trim();
+  if(!nm){shT('Ingresa tu nombre');return null;}
+  return nm;
+}
+// ── Control de guardado de grupos ─────────────────────────────────────────
+var gruposGuardados=false;
+
+  function volverDeGrupos() {
+    irA(0);
+  }
+
+function verificarGruposCompletos(){
+  saveCurrentGroup();
+  var faltantes=[];
+  GS.forEach(function(g){
+    var incompleto=g.pa.some(function(m){
+      var gl=savedScores['gl_'+m.id];
+      var gv=savedScores['gv_'+m.id];
+      return gl===undefined||gl===''||gv===undefined||gv==='';
+    });
+    if(incompleto)faltantes.push('Grupo '+g.id);
+  });
+  return faltantes;
+}
+
+function crearDatosJSON(validarGruposCompletosFlag){
+  var nmEl=document.getElementById('pN');
+  var nom=nmEl?nmEl.value.trim():'';
+  if(!nom){shT('ingresa tu nombre primero en la pagina de inicio');return null;}
+
+  saveCurrentGroup();
+
+  if(validarGruposCompletosFlag){
+    var incompletos=verificarGruposCompletos();
+    if(incompletos.length>0){
+      alert('⚠️ Faltan marcadores en:\n'+incompletos.join('\n')+'\n\nDebes completar todos los partidos antes de guardar.');
+      var primerIdx=grupoIds.indexOf(incompletos[0].replace('Grupo ',''));
+      if(primerIdx>=0){curGrupo=primerIdx;renderGrupoActual();}
+      return null;
+    }
+  }
+
+  autoHonor();
+  var pr=rec();
+  dG={n:nom,p:pr};
+
+  var values={};
+  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(el){
+    if(el.type==='file')return;
+    if(el.type==='checkbox')values[el.id]=el.checked;
+    else values[el.id]=el.value;
+  });
+
+  return {
+    app:'quiniela-mundial-2026',
+    version:2,
+    savedAt:new Date().toISOString(),
+    participante:{
+      nombre:nom
+    },
+    currentGroup:grupoIds[curGrupo]||'A',
+    savedScores:savedScores,
+    values:values,
+    predicciones:pr
+  };
+}
+
+function descargarObjetoJSON(data){
+  if(!data)return;
+  var json=JSON.stringify(data,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var nombre=(data.participante&&data.participante.nombre)?data.participante.nombre:'quiniela';
+  nombre=nombre.replace(/[^a-z0-9_-]+/gi,'_').replace(/^_+|_+$/g,'')||'quiniela';
+  var fecha=new Date().toISOString().slice(0,10);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='quiniela_2026_'+nombre+'_'+fecha+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  shT('✅ JSON generado correctamente');
+}
+
+function guardarJSON(){
+  var data=crearDatosJSON(false);
+  descargarObjetoJSON(data);
+}
+
+function guardarGrupos(){
+  // Allows saving group progress at any moment, even if some matches are incomplete.
+  var data=crearDatosJSON(false);
+  descargarObjetoJSON(data);
+  if(data){gruposGuardados=true;irA(0);}
+}
+
+function guardarElim(){
+  var data=crearDatosJSON(false);
+  descargarObjetoJSON(data);
+}
+
+function guardarEsp(){
+  var data=crearDatosJSON(false);
+  descargarObjetoJSON(data);
+}
+
+function guardar(){
+  guardarJSON();
+}
+
+  function subirJSON(event) {
+    var file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    // Fast size check to avoid blocking UI with large files
+    var MAX_SIZE = 200 * 1024; // 200 KB
+    if (file.size && file.size > MAX_SIZE) {
+      alert('Archivo demasiado grande. ¿Estás subiendo el JSON generado por la página? Si es así, contacta a soporte.');
+      event.target.value = '';
+      return;
+    }
+
+    var reader = new FileReader();
+
+    reader.onload = function (e) {
+      try {
+        var data = JSON.parse(e.target.result);
+
+        // Basic root validation
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          alert('El archivo JSON no tiene el formato correcto. ¿Estás subiendo el JSON generado por la página? Si es así, contacta a soporte.');
+          event.target.value = '';
+          return;
+        }
+
+        // Ensure known root keys, if present, are plain objects
+        if (data.savedScores && (typeof data.savedScores !== 'object' || Array.isArray(data.savedScores))) {
+          alert('Formato inválido: savedScores debe ser un objeto.');
+          event.target.value = '';
+          return;
+        }
+
+        if (data.values && (typeof data.values !== 'object' || Array.isArray(data.values))) {
+          alert('Formato inválido: values debe ser un objeto.');
+          event.target.value = '';
+          return;
+        }
+
+        if (data.predicciones && (typeof data.predicciones !== 'object' || Array.isArray(data.predicciones))) {
+          alert('Formato inválido: predicciones debe ser un objeto.');
+          event.target.value = '';
+          return;
+        }
+
+        // At least one expected data source must exist
+        if (!data.savedScores && !data.values && !data.predicciones) {
+          alert('El archivo JSON no tiene el formato correcto. ¿Estás subiendo el JSON generado por la página? Si es así, contacta a soporte.');
+          event.target.value = '';
+          return;
+        }
+
+        // Participant validation
+        if (data.participante !== undefined) {
+          if (!data.participante || typeof data.participante !== 'object' || Array.isArray(data.participante)) {
+            alert('Formato inválido: participante debe ser un objeto.');
+            event.target.value = '';
+            return;
+          }
+
+          if (data.participante.nombre && String(data.participante.nombre).length > 60) {
+            alert('El nombre del participante en el JSON es demasiado largo.');
+            event.target.value = '';
+            return;
+          }
+
+        }
+
+        // Restore participant fields first
+        if (data.participante) {
+          var pN = document.getElementById('pN');
+          if (pN) pN.value = data.participante.nombre || '';
+        }
+
+        // Restore saved group/tie values
+        savedScores = {};
+
+        if (data.savedScores) {
+          Object.keys(data.savedScores).forEach(function (k) {
+            savedScores[k] = data.savedScores[k];
+          });
+        }
+
+        // Backward compatibility: raw values
+        if (data.values) {
+          Object.keys(data.values).forEach(function (id) {
+            if (/^gl_/.test(id) || /^gv_/.test(id) || /^tie_g_/.test(id)) {
+              savedScores[id] = data.values[id];
+            }
+          });
+        }
+
+        // Recover group scores from predicciones.grupos
+        if (data.predicciones && data.predicciones.grupos) {
+          Object.keys(data.predicciones.grupos).forEach(function (gid) {
+            (data.predicciones.grupos[gid] || []).forEach(function (m) {
+              if (m && m.id !== undefined) {
+                if (m.gL !== undefined && m.gL !== '') savedScores['gl_' + m.id] = m.gL;
+                if (m.gV !== undefined && m.gV !== '') savedScores['gv_' + m.id] = m.gV;
+              }
+            });
+          });
+        }
+
+        // Recover manual ties
+        if (data.predicciones && data.predicciones.ties) {
+          Object.keys(data.predicciones.ties).forEach(function (gid) {
+            savedScores['tie_g_' + gid] = data.predicciones.ties[gid];
+          });
+        }
+
+        // Restore DOM values
+        if (data.values) {
+          Object.keys(data.values).forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el || el.type === 'file') return;
+
+            if (el.type === 'checkbox') el.checked = !!data.values[id];
+            else el.value = data.values[id];
+
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+        }
+
+        // Backward compatibility for knockout predictions
+        if (data.predicciones && data.predicciones.elim) {
+          Object.keys(data.predicciones.elim).forEach(function (pid) {
+            var m = data.predicciones.elim[pid] || {};
+            var gl = document.getElementById('egl_' + pid);
+            var gv = document.getElementById('egv_' + pid);
+            var pen = document.getElementById('pen_' + pid);
+
+            if (gl && m.gL !== undefined) gl.value = m.gL;
+            if (gv && m.gV !== undefined) gv.value = m.gV;
+            if (pen && m.pen !== undefined) pen.value = m.pen;
+          });
+        }
+
+        // Backward compatibility for special prediction
+        if (data.predicciones && data.predicciones.esp) {
+          var sp4 = document.getElementById('sp4');
+          if (sp4 && data.predicciones.esp.g !== undefined) sp4.value = data.predicciones.esp.g;
+        }
+
+        if (data.currentGroup) {
+          var idx = grupoIds.indexOf(data.currentGroup);
+          if (idx >= 0) curGrupo = idx;
+        }
+
+        persistSaved();
+        renderGrupoActual();
+        uEN();
+        rMT3();
+        rEmp();
+        rBK();
+        autoHonor();
+        uP();
+
+        shT('✅ JSON subido correctamente');
+
+      } catch (err) {
+        console.error(err);
+        alert('No se pudo subir el JSON. Verifica que el archivo sea válido. Si el problema persiste contacta a soporte');
+      }
+
+      event.target.value = '';
+    };
+
+    reader.readAsText(file);
+  }
+function pdfRapido(){
+  var nm=document.getElementById('pN').value.trim();
+  if(!nm){shT('ingresa tu nombre primero en la pagina de inicio');return;}
+  var pr=rec();dG={n:nm,p:pr};
+  genPDF();
+}
+
+function cerrar(){document.getElementById('mOk').classList.remove('show');}
+function shT(m){var t=document.getElementById('tst');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
+
+var curGrupo=0;
+var grupoIds=['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+// ── Navegación entre pantallas ─────────────────────────────────────────────
+function irA(n){
+  // Save current group inputs before switching screens
+  saveCurrentGroup();
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('s'+n).classList.add('active');
+  window.scrollTo(0,0);
+  if(n===1){gruposGuardados=false;renderGrupoActual();}
+  if(n===2){uEN();rMT3();rEmp();rBK();}
+  if(n===3){autoHonor();}
+}
+
+// ── Render grupo actual ────────────────────────────────────────────────────
+function renderGrupoBtns(){
+  var grid=document.getElementById('gbtnGrid');
+  grid.innerHTML='';
+  grupoIds.forEach(function(gId,i){
+    var g=GS.find(function(x){return x.id===gId;});
+    var done=g&&g.pa.every(function(m){var a=document.getElementById('gl_'+m.id),b=document.getElementById('gv_'+m.id);return a&&b&&a.value!==''&&b.value!=='';});
+    var btn=document.createElement('div');
+    btn.className='gbtn '+(i===curGrupo?'act':done?'ok':'inact');
+    btn.textContent=gId;
+    btn.onclick=(function(idx){return function(){saveCurrentGroup();curGrupo=idx;renderGrupoActual();};})(i);
+    grid.appendChild(btn);
+  });
+}
+
+function renderGrupoActual(){
+  renderGrupoBtns();
+  var gId=grupoIds[curGrupo];
+  var g=GS.find(function(x){return x.id===gId;});
+  var c=document.getElementById('grupoContent');
+  // Header grupo
+  var h='<div class="grupo-hdr">';
+  h+='<div class="grupo-hdr-title">GRUPO '+gId+'</div>';
+  h+='<div class="grupo-hdr-teams">'+g.eq.map(function(e){return fI(e.n)+' '+e.n;}).join(' · ')+'</div>';
+  h+='</div>';
+  // Tabla posiciones
+  h+='<div class="card">';
+  h+='<div class="card-hdr">TABLA DE POSICIONES · GRUPO '+gId+'</div>';
+  h+='<table class="tpos"><thead><tr><th>#</th><th></th><th class="tls">Selección</th><th>Pts</th><th>J</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th></tr></thead>';
+  h+='<tbody id="tab_'+gId+'"></tbody></table>';
+  h+='<div id="tieW_'+gId+'"></div>';
+  h+='<div class="ly"><span><span class="ld" style="background:var(--blue)"></span>Clasifica</span><span><span class="ld" style="background:var(--green)"></span>3er</span></div>';
+  h+='</div>';
+  // Partidos
+  h+='<div class="card">';
+  h+='<div class="partidos-hdr"><span>LOCAL</span><span>MARCADOR</span><span>VISITANTE</span></div>';
+  g.pa.forEach(function(m,idx){
+    h+='<div class="partido-row'+(idx%2?' alt':'')+'" id="tr_'+m.id+'">';
+    h+='<div class="pjor">'+m.j+'</div>';
+    h+='<div class="plocal">'+fI(m.lo)+' <span class="pn">'+m.lo+'</span></div>';
+    h+='<div class="marcador">';
+    h+='<input class="sc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="gl_'+m.id+'" placeholder="" autocomplete="off" oninput="oS(this,\'gv_'+m.id+'\',\''+gId+'\','+m.id+')">';
+    h+='<span class="sep">:</span>';
+    h+='<input class="sc" type="number" min="0" max="99" step="1" inputmode="numeric" pattern="[0-9]*" id="gv_'+m.id+'" placeholder="" autocomplete="off" oninput="oS(this,null,\''+gId+'\','+m.id+')">';
+    h+='</div>';
+    h+='<div class="pvisit"><span class="pn">'+m.vi+'</span> '+fI(m.vi)+'</div>';
+    h+='<div class="pfecha">'+m.fe+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  c.innerHTML=h;
+  // Restaurar valores guardados
+  g.pa.forEach(function(m){
+    var a=document.getElementById('gl_'+m.id),b=document.getElementById('gv_'+m.id);
+    if(savedScores['gl_'+m.id]){a.value=savedScores['gl_'+m.id];a.classList.add('ok');}
+    if(savedScores['gv_'+m.id]){b.value=savedScores['gv_'+m.id];b.classList.add('ok');}
+  });
+  rT(gId);
+  document.getElementById('grupoInfo').textContent='Grupo '+gId+' — '+(curGrupo+1)+' de 12';
+  // Botón guardar visible en todos los grupos para poder descargar JSON en cualquier momento
+  var wrap=document.getElementById('btnGuardarGrupoWrap');
+  if(wrap){
+    wrap.innerHTML='<button style="background:#fff;border:1.5px solid var(--gold);border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--gold);cursor:pointer;" onclick="guardarGrupos()">💾 Descargar JSON</button>';
+  }
+}
+
+function navGrupo(dir){
+  saveCurrentGroup();
+  if(curGrupo===0 && dir<0){
+    irA(0);
+    return;
+  }
+  if(curGrupo===11 && dir>0){
+    irA(2);
+    return;
+  }
+  curGrupo=Math.max(0,Math.min(11,curGrupo+dir));
+  renderGrupoActual();window.scrollTo(0,0);
+}
+
+// Guardar valores de inputs para no perderlos al cambiar de grupo o recargar la página
+var savedScores={};
+var savedValues={};
+
+// Persist savedScores + all relevant form values to localStorage
+  function persistSaved() {
+    try {
+      var values = {};
+
+      document.querySelectorAll('input[id], select[id], textarea[id]').forEach(function (el) {
+        if (el.type === 'file') return;
+
+        if (el.type === 'checkbox') {
+          values[el.id] = el.checked;
+        } else {
+          values[el.id] = el.value;
+        }
+      });
+
+      savedValues = values;
+
+      var data = {
+        savedScores: savedScores,
+        savedValues: values
+      };
+
+      localStorage.setItem('quiniela2026_saved', JSON.stringify(data));
+    } catch (e) {
+      console.warn('persistSaved failed', e);
+    }
+  }
+
+function loadSaved(){
+  try{
+    var raw=localStorage.getItem('quiniela2026_saved');
+    if(!raw)return;
+    var obj=JSON.parse(raw);
+    if(obj&&obj.savedScores)savedScores=obj.savedScores;
+    if(obj&&obj.savedValues)savedValues=obj.savedValues;
+
+    // Compatibility with older saved data from prior versions of this page
+    if(obj&&obj.meta){
+      savedValues=savedValues||{};
+      if(obj.meta.pN)savedValues.pN=obj.meta.pN;
+      if(obj.meta.sp4)savedValues.sp4=obj.meta.sp4;
+    }
+  }catch(e){console.warn('loadSaved failed',e);}
+}
+
+function restoreSavedValues(){
+  if(!savedValues)return;
+
+  Object.keys(savedValues).forEach(function(id){
+    if(/^pen_/.test(id))return;
+    var el=document.getElementById(id);
+    if(!el||el.type==='file')return;
+    if(el.type==='checkbox')el.checked=!!savedValues[id];
+    else el.value=savedValues[id];
+    if(el.classList&&(el.classList.contains('sc')||el.classList.contains('msc')||el.classList.contains('esp-inp'))){
+      el.classList.toggle('ok',el.value!=='');
+    }
+  });
+
+  // Recreate penalty dropdowns for tied eliminatoria matches, then restore selected penalty winners
+  OCT.concat(CUA).concat(SEM).concat(SFNL).concat(TER).concat(FNL).forEach(function(m){
+    var a=document.getElementById('egl_'+m.id);
+    if(a)oE(a,null,m.id);
+  });
+
+  Object.keys(savedValues).forEach(function(id){
+    if(!/^pen_/.test(id))return;
+    var el=document.getElementById(id);
+    if(el)el.value=savedValues[id];
+  });
+
+  autoHonor();uEN();rMT3();rEmp();rBK();uP();
+}
+
+function saveCurrentGroup(){
+  // Save all visible group inputs before navigating away
+  document.querySelectorAll('.sc').forEach(function(inp){
+    if(inp.value!=='') savedScores[inp.id]=inp.value;
+  });
+  // Guardar también el desempate manual del grupo actual
+  var gId=GS[curGrupo]?GS[curGrupo].id:'';
+  if(gId){
+    var tieEl=document.getElementById('tie_g_'+gId);
+    if(tieEl&&tieEl.value) savedScores['tie_g_'+gId]=tieEl.value;
+  }
+  // Persist to localStorage so data survives reloads
+  persistSaved();
+}
+
+// Autosave periodically
+setInterval(persistSaved, 5000);
+window.addEventListener('beforeunload', persistSaved);
+// Load any saved state immediately so renderGrupoActual can pick it up
+loadSaved();
+function oS(inp,nId,gI,mI){
+  savedScores[inp.id]=inp.value;
+  inp.classList.toggle('ok',inp.value!=='');
+  if(inp.value.length>=2&&nId){var n=document.getElementById(nId);if(n)n.focus();}
+  var a=document.getElementById('gl_'+mI),b=document.getElementById('gv_'+mI);
+  var tr=document.getElementById('tr_'+mI);
+  if(tr)tr.classList.toggle('dn',a&&b&&a.value!==''&&b.value!=='');
+  rT(gI);uEN();rMT3();rEmp();rBK();uP();persistSaved();
+}
+
+// Init nueva estructura
+rE('oc',OCT);rE('cc',CUA);rE('qq',SEM);rE('ss',SFNL);rE('t3',TER);rE('f3',FNL);
+// Render primer grupo
+renderGrupoActual();
+restoreSavedValues();
+uP();
+</script></body></html>

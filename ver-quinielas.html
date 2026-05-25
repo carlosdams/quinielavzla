@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline';
+  object-src 'none';
+  base-uri 'self';
+  frame-ancestors 'none';
+">
+<title>Ver Quinielas llenas</title>
+<style>
+  body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#1f2937;}
+  .topbar{background:#1b4332;color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;}
+  .topbar button{background:#ffe066;border:none;color:#1b4332;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;}
+  .container{max-width:960px;margin:24px auto;padding:0 16px;}
+  h1{font-size:24px;margin-bottom:8px;}
+  p{color:#475569;margin-bottom:20px;}
+  .file-list{list-style:none;padding:0;margin:0;}
+  .file-list li{background:#fff;border:1px solid #dbe4ea;border-radius:12px;margin-bottom:12px;}
+  .file-list a{display:block;padding:16px; color:#1b4332; text-decoration:none;font-weight:700;}
+  .file-list a:hover{background:#f8fafc;}
+  .scoreboard{margin-top:26px;}
+  .scoreboard h2{font-size:20px;margin:0 0 10px;color:#164e2f;}
+  .scoreboard table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px rgba(15,23,42,0.08);}
+  .scoreboard th,.scoreboard td{padding:14px 16px;border:1px solid #e2e8f0;text-align:left;font-size:14px;}
+  .scoreboard th{background:#ecfdf5;color:#166534;font-weight:700;}
+  .scoreboard tr:nth-child(even){background:#f8fafc;}
+  .scoreboard code{background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a;}
+  .empty{padding:18px;border:1px solid #dbe4ea;border-radius:12px;background:#fff;color:#64748b;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <button onclick="window.location.href='index.html'">Volver a la página principal</button>
+  </div>
+  <div class="container">
+    <h1>Quinielas llenas de los participantes 👥</h1>
+    <p>Aquí están las quinielas completadas por los participantes que la enviaron. Haz clic para ver o descargar la quiniela en PDF.</p>
+    <ul class="file-list">
+      <li><a href="quiniellas-llenas-pdf/Quiniela-2026-Carlos-Dams.pdf" target="_blank" rel="noopener noreferrer">Carlos Dams</a></li>
+    </ul>
+
+    <section class="scoreboard">
+      <h2>Tabla de puntajes</h2>
+      <!-- <p>Compara los pronósticos JSON con los resultados reales. Actualiza la variable <code>actualResults</code> y <code>actualElimResults</code> en el script para calcular los puntos.</p> -->
+      <table>
+        <thead>
+          <tr><th>Participante</th><th>Puntos</th></tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr><td colspan="2">Cargando puntajes…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    var predictionFiles = [
+      { name: 'Carlos Dams', path: 'quiniellas-llenas-json/quiniela_2026_Carlos_Dams_2026-05-25.json' },
+    ];
+
+    // Agrega aquí los resultados reales de los partidos.
+    // Las claves son los ids de partido (1-104), y para eliminación puedes incluir 'pen' si se definió ganador por penales.
+    var actualResults = {
+      // gL: goles del equipo local, gV: goles del equipo visitante
+      // Ejemplo de grupo siendo 1 el id 1 - 1: { gL: 1, gV: 0 },
+      //  1: { gL: 0, gV: 0 },
+      //  2: { gL: 1, gV: 2 },
+    };
+
+    var actualElimResults = {
+      // Ejemplo de eliminación: 73: { gL: 1, gV: 1, pen: 'vi' },
+      // pen is not used
+      // !!!
+      // TODO - Check how to assign results when the team is not the actual team from the user
+      // This part will not be as simple as the group stage, because the user may have different teams in elimination rounds.
+      // We need to check the actual teams that played and assign the result accordingly.
+      // !!!
+      //73: { gL: 1, gV: 1 },
+      //74: { gL: 2, gV: 0 },
+    };
+
+    function parseIntOrNull(value) {
+      var n = parseInt(value, 10);
+      return isNaN(n) ? null : n;
+    }
+
+    function matchOutcome(result) {
+      if (result.gL === result.gV) return 'D';
+      return result.gL > result.gV ? 'L' : 'V';
+    }
+
+    function normalizeParticipantName(data, fallback) {
+      return (data.participante && data.participante.nombre) || (data.values && data.values.pN) || fallback || 'Participante';
+    }
+
+    function loadPrediction(file) {
+      return fetch(file.path).then(function (response) {
+        if (!response.ok) throw new Error('No se pudo cargar ' + file.path + ' (status ' + response.status + ')');
+        return response.json();
+      }).then(function (data) {
+        data._fileLabel = file.name;
+        return data;
+      });
+    }
+
+    // Directory discovery removed for simpler development: the page will use the
+    // static `predictionFiles` array to load JSON files. This avoids hangs when
+    // the server doesn't expose directory listings or manifests.
+
+    function getPredictedMatch(data, id) {
+      var saved = data.savedScores || {};
+      var groupKeyL = 'gl_' + id;
+      var groupKeyV = 'gv_' + id;
+      if (groupKeyL in saved || groupKeyV in saved) {
+        return {
+          gL: parseIntOrNull(saved[groupKeyL]),
+          gV: parseIntOrNull(saved[groupKeyV]),
+          pen: ''
+        };
+      }
+
+      var elim = (data.predicciones && data.predicciones.elim) || {};
+      if (elim[id]) {
+        return {
+          gL: parseIntOrNull(elim[id].gL),
+          gV: parseIntOrNull(elim[id].gV),
+          pen: (elim[id].pen || '').trim()
+        };
+      }
+
+      return null;
+    }
+
+    function scoreMatch(actual, predicted) {
+      if (!actual || !predicted) return 0;
+      if (predicted.gL === null || predicted.gV === null) return 0;
+
+      if (actual.gL === predicted.gL && actual.gV === predicted.gV) {
+        return 3;
+      }
+
+      return matchOutcome(actual) === matchOutcome(predicted) ? 1 : 0;
+    }
+
+    function computeUserPoints(data) {
+      var total = 0;
+      Object.keys(actualResults).forEach(function (id) {
+        var actual = actualResults[id];
+        var predicted = getPredictedMatch(data, id);
+        total += scoreMatch(actual, predicted);
+      });
+      Object.keys(actualElimResults).forEach(function (id) {
+        var actual = actualElimResults[id];
+        var predicted = getPredictedMatch(data, id);
+        total += scoreMatch(actual, predicted);
+      });
+      return total;
+    }
+
+      function renderLeaderboard() {
+      var tbody = document.getElementById('leaderboard-body');
+      var hasActual = Object.keys(actualResults).length + Object.keys(actualElimResults).length > 0;
+
+          if (!hasActual) {
+              tbody.innerHTML = '';
+
+              predictionFiles.forEach(function (file) {
+                  var row = document.createElement('tr');
+                  var nameCell = document.createElement('td');
+                  var scoreCell = document.createElement('td');
+
+                  nameCell.textContent = file.name;
+                  scoreCell.textContent = '';
+
+                  row.appendChild(nameCell);
+                  row.appendChild(scoreCell);
+                  tbody.appendChild(row);
+              });
+
+              return;
+          }
+
+      tbody.innerHTML = '<tr><td colspan="2">Calculando puntajes…</td></tr>';
+
+      // Use the static predictionFiles list (simple and reliable)
+      Promise.all(predictionFiles.map(function (file) {
+        return loadPrediction(file).then(function (data) { return { file: file, data: data }; }).catch(function (error) { return { file: file, error: error }; });
+      })).then(function (results) {
+        tbody.innerHTML = '';
+        results.forEach(function (result) {
+          var row = document.createElement('tr');
+          var nameCell = document.createElement('td');
+          var scoreCell = document.createElement('td');
+
+          if (result.error) {
+            nameCell.textContent = result.file.name + ' (error)';
+            scoreCell.textContent = result.error && result.error.message ? result.error.message : String(result.error || '-');
+            scoreCell.style.color = '#b91c1c';
+          } else {
+            nameCell.textContent = normalizeParticipantName(result.data, result.file.name);
+            scoreCell.textContent = computeUserPoints(result.data);
+          }
+
+          row.appendChild(nameCell);
+          row.appendChild(scoreCell);
+          tbody.appendChild(row);
+        });
+      }).catch(function (err) {
+        tbody.innerHTML = '';
+
+          var row = document.createElement('tr');
+          var cell = document.createElement('td');
+
+          cell.colSpan = 2;
+          cell.textContent = 'Error al calcular puntajes: ' + (err && err.message ? err.message : String(err));
+
+          row.appendChild(cell);
+          tbody.appendChild(row);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderLeaderboard);
+  </script>
+</body>
+</html>
