@@ -49,6 +49,7 @@
       <li><a href="quiniellas-llenas-pdf/Quiniela-2026-Hernando.pdf" target="_blank" rel="noopener noreferrer">Hernando</a></li>
       <li><a href="quiniellas-llenas-pdf/Quiniela-2026-Marcos-Álvarez.pdf" target="_blank" rel="noopener noreferrer">Marcos Álvarez</a></li>
       <li><a href="quiniellas-llenas-pdf/Quiniela-2026-Marcos-Polo.pdf" target="_blank" rel="noopener noreferrer">Marcos Polo</a></li>
+      <li><a href="quiniellas-llenas-pdf/Quiniela-2026-Daniel-Martinez.pdf" target="_blank" rel="noopener noreferrer">Daniel Martinez</a></li>
     </ul>
 
     <section class="scoreboard">
@@ -72,9 +73,10 @@
       { name: 'Oswaldo Leon', path: 'quiniellas-llenas-json/quiniela_2026_Oswaldo_Leon_2026-06-12.json' },
       { name: 'Carlitos jesus', path: 'quiniellas-llenas-json/quiniela_2026_Carlitos_jesus_2026-06-11.json' },
       { name: 'Gustavo Power', path: 'quiniellas-llenas-json/quiniela_2026_Gustavo_Power_2026-06-09.json' },
-      { name: 'Hernando', path: 'quiniellas-llenas-json/quiniela_2026_Hernando_2026-06-11.json' },
+      { name: 'Hernando', path: 'quiniellas-llenas-json/quiniela_2026_Hernando_2026-06-12.json' },
       { name: 'Marcos Álvarez', path: 'quiniellas-llenas-json/quiniela_2026_Marcos_Alvarez_2026-06-11.json' },
-      { name: 'Marcos Polo', path: 'quiniellas-llenas-json/quiniela_2026_Marcos_Polo_2026-06-09.json' }
+      { name: 'Marcos Polo', path: 'quiniellas-llenas-json/quiniela_2026_Marcos_Polo_2026-06-09.json' },
+      { name: 'Daniel Martinez', path: 'quiniellas-llenas-json/quiniela_2026_Daniel_Martinez_2026-06-12.json' },
     ];
 
     // Agrega aquí los resultados reales de los partidos.
@@ -85,6 +87,8 @@
       //  1: { gL: 0, gV: 0 },
       //  2: { gL: 1, gV: 2 },
       1: { gL: 2, gV: 0 },
+      2: { gL: 2, gV: 1 },
+      3: { gL: 1, gV: 1 },
     };
 
     var actualElimResults = {
@@ -97,6 +101,11 @@
       // !!!
       //73: { gL: 1, gV: 1 },
       //74: { gL: 2, gV: 0 },
+    };
+
+    var penalties = {
+      // Penalizaciones por participante (resta de puntos)
+      'Marcos Álvarez': 3
     };
 
     function parseIntOrNull(value) {
@@ -174,6 +183,13 @@
         var predicted = getPredictedMatch(data, id);
         total += scoreMatch(actual, predicted);
       });
+
+      // Aplicar penalizaciones
+      var participantName = normalizeParticipantName(data, '');
+      if (participantName in penalties) {
+        total -= penalties[participantName];
+      }
+
       return total;
     }
 
