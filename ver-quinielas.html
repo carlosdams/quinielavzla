@@ -152,9 +152,41 @@
       'Marcos Álvarez': 3
     };
 
+    // OPTIONAL manual override for the round-by-round advancement bonus.
+    // Leave every array empty to auto-derive it from the bracket and `actualElimResults`.
+    // The bonus awards +1 per team, per round reached, for these rounds only:
+    // FIRST_KO = matches 73-88, R16 = matches 89-96, QF = matches 97-100,
+    // SF = matches 101-102, FINAL = match 104.
+    // Match 103 (third-place match) is excluded from this advancement bonus.
+    var actualAdvancementTeamsByRound = {
+      FIRST_KO: [],
+      R16: [],
+      QF: [],
+      SF: [],
+      FINAL: []
+    };
+    // Legacy/manual list kept for compatibility only. If filled, it is treated as FIRST_KO only.
+    var actualKnockoutTeams = [];
+    // OPTIONAL manual overrides: if left empty the code will try to derive
+    // champion/runner-up/third from the bracket + `actualElimResults`.
+    var actualChampion = '';
+    var actualRunnerUp = '';
+    var actualThirdPlace = '';
+    // Provide actual top scorer name(s) (no automatic derivation available).
+    // Use an array of name variants to match user inputs (e.g. ['Mbappé','Mbappe','Kylian Mbappé']).
+    var actualTopScorers = [];
+
     function parseIntOrNull(value) {
       var n = parseInt(value, 10);
       return isNaN(n) ? null : n;
+    }
+
+    function normalizeKey(value) {
+      var s = (value || '').toString().trim().toLowerCase();
+      if (s.normalize) {
+        s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      }
+      return s;
     }
 
     function matchOutcome(result) {
@@ -197,7 +229,9 @@
         return {
           gL: parseIntOrNull(elim[id].gL),
           gV: parseIntOrNull(elim[id].gV),
-          pen: (elim[id].pen || '').trim()
+          pen: (elim[id].pen || '').trim(),
+          loName: (elim[id].lo || '').toString(),
+          viName: (elim[id].vi || '').toString()
         };
       }
 
@@ -215,6 +249,21 @@
       return matchOutcome(actual) === matchOutcome(predicted) ? 1 : 0;
     }
 
+    function hasResolvedElimWinner(result) {
+      if (!result || typeof result.gL !== 'number' || typeof result.gV !== 'number') return false;
+      if (result.gL !== result.gV) return true;
+      return result.pen === 'lo' || result.pen === 'vi';
+    }
+
+    function getElimWinnerAndLoser(result, teams) {
+      if (!hasResolvedElimWinner(result) || !teams || !teams.lo || !teams.vi) return { winner: '', loser: '' };
+      if (result.gL > result.gV) return { winner: teams.lo, loser: teams.vi };
+      if (result.gV > result.gL) return { winner: teams.vi, loser: teams.lo };
+      if (result.pen === 'lo') return { winner: teams.lo, loser: teams.vi };
+      if (result.pen === 'vi') return { winner: teams.vi, loser: teams.lo };
+      return { winner: '', loser: '' };
+    }
+
     function computeUserPoints(data) {
       var total = 0;
       Object.keys(actualResults).forEach(function (id) {
@@ -222,16 +271,128 @@
         var predicted = getPredictedMatch(data, id);
         total += scoreMatch(actual, predicted);
       });
+      // For elimination matches, only apply match scoring when the
+      // participant predicted the same two teams that actually played
+      // that match (order may differ). If actual teams cannot be resolved,
+      // award 0 score points for that elimination match instead of using
+      // score-only legacy fallback.
       Object.keys(actualElimResults).forEach(function (id) {
         var actual = actualElimResults[id];
         var predicted = getPredictedMatch(data, id);
-        total += scoreMatch(actual, predicted);
+
+        // try to resolve actual teams for this elimination match
+        var actualTeams = null;
+        try { if (BRACKET) actualTeams = resolveMatchTeams(id); } catch (e) { actualTeams = null; }
+
+        if (actualTeams && actualTeams.lo && actualTeams.vi && predicted && (predicted.loName || predicted.viName)) {
+          var aLo = normalizeKey(actualTeams.lo);
+          var aVi = normalizeKey(actualTeams.vi);
+          var pLo = normalizeKey(predicted.loName);
+          var pVi = normalizeKey(predicted.viName);
+
+          var sameOrder = (aLo === pLo && aVi === pVi);
+          var swappedOrder = (aLo === pVi && aVi === pLo);
+
+          if (sameOrder) {
+            total += scoreMatch(actual, predicted);
+          } else if (swappedOrder) {
+            // swap predicted scores before scoring
+            var swappedPred = { gL: predicted.gV, gV: predicted.gL, pen: predicted.pen };
+            total += scoreMatch(actual, swappedPred);
+          } else {
+            // participant did not predict these teams -> no match scoring
+          }
+        } else {
+          // Strict gating: unresolved actual teams or missing predicted team names
+          // means no elimination match-score points for this match.
+        }
       });
+
+      // Round-by-round advancement bonus:
+      // +1 per team, per correct round reached, for FIRST_KO, R16, QF, SF, and FINAL.
+      // Example: if a team actually reaches the Final and the participant also
+      // predicted that team in IDs 73-88, R16, QF, SF, and Final, that team earns +5 total.
+      // Match 103 (third-place) is excluded from this advancement bonus.
+      var actualRounds = getActualAdvancementRoundSets();
+      var predictedRounds = getPredictedAdvancementRoundSets(data);
+      total += countAdvancementRoundBonus(actualRounds, predictedRounds);
 
       // Aplicar penalizaciones
       var participantName = normalizeParticipantName(data, '');
       if (participantName in penalties) {
         total -= penalties[participantName];
+      }
+
+      // Bonus points: champion (10), runner-up (5), third place (5), top scorer (5)
+      try {
+        // derive champion/runner/third if not provided
+        var derived = { champ: '', runner: '', third: '' };
+        if ((!actualChampion || !actualRunnerUp || !actualThirdPlace) && BRACKET) {
+          var fmatch = (BRACKET.FNL && BRACKET.FNL[0]) || null;
+          if (fmatch) {
+            var fteams = null;
+            try { fteams = resolveMatchTeams(fmatch.id); } catch (e) { fteams = null; }
+            if (fteams && fteams.lo && fteams.vi) {
+              var fres = actualElimResults[fmatch.id];
+              var finalOutcome = getElimWinnerAndLoser(fres, fteams);
+              derived.champ = finalOutcome.winner;
+              derived.runner = finalOutcome.loser;
+            }
+          }
+          var tmatch = (BRACKET.TER && BRACKET.TER[0]) || null;
+          if (tmatch) {
+            var tteams = null;
+            try { tteams = resolveMatchTeams(tmatch.id); } catch (e) { tteams = null; }
+            if (tteams && tteams.lo && tteams.vi) {
+              var tres = actualElimResults[tmatch.id];
+              var thirdOutcome = getElimWinnerAndLoser(tres, tteams);
+              derived.third = thirdOutcome.winner;
+            }
+          }
+        }
+
+        var actChamp = actualChampion && actualChampion.toString().trim() !== '' ? actualChampion : derived.champ;
+        var actRunner = actualRunnerUp && actualRunnerUp.toString().trim() !== '' ? actualRunnerUp : derived.runner;
+        var actThird = actualThirdPlace && actualThirdPlace.toString().trim() !== '' ? actualThirdPlace : derived.third;
+        var actTopArr = [];
+        if (Array.isArray(actualTopScorers) && actualTopScorers.length) actTopArr = actualTopScorers.slice();
+        else if (actualTopScorers && actualTopScorers.toString().trim() !== '') actTopArr = [actualTopScorers.toString()];
+
+        var norm = normalizeKey;
+
+        // champion (10)
+        var pChamp = (data.values && data.values.sp1) || (data.predicciones && data.predicciones.esp && data.predicciones.esp.c) || '';
+        if (actChamp && pChamp && norm(pChamp) === norm(actChamp)) total += 10;
+
+        // third place (5)
+        var pThird = (data.values && data.values.sp3) || (data.predicciones && data.predicciones.esp && data.predicciones.esp.t) || '';
+        if (actThird && pThird && norm(pThird) === norm(actThird)) total += 5;
+
+        // runner-up (5) — must be the loser of the participant's predicted final (match 104)
+        var pFinal = (data.predicciones && data.predicciones.elim && data.predicciones.elim[104]) || null;
+        if (actRunner && pFinal) {
+          var pFinalGL = parseIntOrNull(pFinal.gL);
+          var pFinalGV = parseIntOrNull(pFinal.gV);
+          var pRunner = '';
+
+          if (pFinalGL !== null && pFinalGV !== null) {
+            if (pFinalGL > pFinalGV) pRunner = pFinal.vi || '';
+            else if (pFinalGV > pFinalGL) pRunner = pFinal.lo || '';
+            else if ((pFinal.pen || '') === 'lo') pRunner = pFinal.vi || '';
+            else if ((pFinal.pen || '') === 'vi') pRunner = pFinal.lo || '';
+          }
+
+          if (pRunner && norm(pRunner) === norm(actRunner)) total += 5;
+        }
+
+        // top scorer (5) — match against any provided variant
+        var pTop = (data.values && data.values.sp4) || (data.predicciones && data.predicciones.esp && data.predicciones.esp.g) || '';
+        if (pTop && actTopArr && actTopArr.length) {
+          var pn = norm(pTop);
+          for (var ti = 0; ti < actTopArr.length; ti++) { if (pn === norm(actTopArr[ti])) { total += 5; break; } }
+        }
+      } catch (e) {
+        // non-fatal — do nothing
       }
 
       return total;
@@ -317,7 +478,329 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', renderLeaderboard);
+    // Load bracket data from index.html and then render leaderboard
+    var BRACKET = null;
+
+    function extractArrayFromIndex(text, name){
+      var re = new RegExp('var\\s+'+name+'\\s*=\\s*(\\[[\\s\\S]*?\\]);');
+      var m = text.match(re);
+      if(!m) return null;
+      try{ return (new Function('return '+m[1]))(); }catch(e){return null;}
+    }
+
+    async function loadBracket(){
+      try{
+        var resp = await fetch('index.html');
+        if(!resp.ok) return null;
+        var txt = await resp.text();
+        var GSx = extractArrayFromIndex(txt,'GS');
+        var OCTx = extractArrayFromIndex(txt,'OCT');
+        var CUAx = extractArrayFromIndex(txt,'CUA');
+        var SEMx = extractArrayFromIndex(txt,'SEM');
+        var SFNLx = extractArrayFromIndex(txt,'SFNL');
+        var TERx = extractArrayFromIndex(txt,'TER');
+        var FNLx = extractArrayFromIndex(txt,'FNL');
+        var CMBx = extractArrayFromIndex(txt,'CMB');
+        return {GS:GSx,OCT:OCTx,CUA:CUAx,SEM:SEMx,SFNL:SFNLx,TER:TERx,FNL:FNLx,CMB:CMBx};
+      }catch(e){return null;}
+    }
+
+    // --- Group standings + FIFA tie-breakers ---
+    function buildGroupTables(GS, actualResults){
+      // compute overall stats
+      var groups = {};
+      GS.forEach(function(g){
+        var teams = {};
+        g.eq.forEach(function(e){teams[e.n]={n:e.n,p:0,j:0,w:0,d:0,l:0,gf:0,gc:0,dg:0};});
+        g.pa.forEach(function(m){
+          var ar = actualResults[m.id];
+          if(!ar) return;
+          var lo = m.lo, vi = m.vi;
+          var gL = ar.gL, gV = ar.gV;
+          if(typeof gL!=='number' || typeof gV!=='number') return;
+          teams[lo].j++; teams[vi].j++;
+          teams[lo].gf += gL; teams[lo].gc += gV; teams[lo].dg = teams[lo].gf - teams[lo].gc;
+          teams[vi].gf += gV; teams[vi].gc += gL; teams[vi].dg = teams[vi].gf - teams[vi].gc;
+          if(gL>gV){ teams[lo].w++; teams[lo].p+=3; teams[vi].l++; }
+          else if(gL<gV){ teams[vi].w++; teams[vi].p+=3; teams[lo].l++; }
+          else { teams[lo].d++; teams[vi].d++; teams[lo].p+=1; teams[vi].p+=1; }
+        });
+        // convert to array
+        groups[g.id] = Object.keys(teams).map(function(k){var t=teams[k];t.n=k; return t;});
+      });
+      return groups;
+    }
+
+    function headToHeadStats(groupMatches, tiedNames, actualResults){
+      var stats = {};
+      tiedNames.forEach(function(n){stats[n]={n:n,p:0,gf:0,gc:0,dg:0};});
+      groupMatches.forEach(function(m){
+        var lo = m.lo, vi = m.vi;
+        if(tiedNames.indexOf(lo)===-1 || tiedNames.indexOf(vi)===-1) return;
+        var ar = actualResults[m.id]; if(!ar) return;
+        var gL = ar.gL, gV = ar.gV; if(typeof gL!=='number' || typeof gV!=='number') return;
+        stats[lo].gf += gL; stats[lo].gc += gV; stats[lo].dg = stats[lo].gf - stats[lo].gc; stats[vi].gf += gV; stats[vi].gc += gL; stats[vi].dg = stats[vi].gf - stats[vi].gc;
+        if(gL>gV){ stats[lo].p+=3; } else if(gL<gV){ stats[vi].p+=3; } else { stats[lo].p+=1; stats[vi].p+=1; }
+      });
+      return stats;
+    }
+
+    function sortGroup(gObj, GS_group, actualResults){
+      // gObj: array of team objects with overall stats
+      // GS_group.pa contains matches to compute head-to-head
+      // First sort by points to create clusters
+      gObj.sort(function(a,b){return b.p - a.p || b.dg - a.dg || b.gf - a.gf || a.n.localeCompare(b.n);} );
+      // resolve ties using FIFA rules
+      var i=0; while(i<gObj.length){
+        var j=i+1; while(j<gObj.length && gObj[j].p===gObj[i].p) j++;
+        if(j-i>1){
+          var cluster = gObj.slice(i,j);
+          var tiedNames = cluster.map(function(t){return t.n;});
+          var hh = headToHeadStats(GS_group.pa, tiedNames, actualResults);
+          cluster.sort(function(a,b){
+            var A = hh[a.n], B = hh[b.n];
+            if(A.p!==B.p) return B.p-A.p;
+            if((A.gf-A.gc)!==(B.gf-B.gc)) return (B.gf-B.gc)-(A.gf-A.gc);
+            if(A.gf!==B.gf) return B.gf-A.gf;
+            // step two: overall gd and gf
+            if(a.dg!==b.dg) return b.dg - a.dg;
+            if(a.gf!==b.gf) return b.gf - a.gf;
+            return a.n.localeCompare(b.n);
+          });
+          // write back
+          for(var k=0;k<cluster.length;k++) gObj[i+k]=cluster[k];
+        }
+        i=j;
+      }
+      // assign pos and recompute dg
+      gObj.forEach(function(t,idx){t.pos=idx+1; t.dg = t.gf - t.gc;});
+      return gObj;
+    }
+
+    function computeAllStandings(bracket){
+      var GS = bracket.GS; var groupsMap = buildGroupTables(GS, actualResults);
+      var final = {};
+      GS.forEach(function(g){ var arr = groupsMap[g.id]; final[g.id]= sortGroup(arr, g, actualResults); });
+      return final;
+    }
+
+    function computeBestThirds(standings){
+      var thirds = [];
+      Object.keys(standings).forEach(function(gid){ var arr = standings[gid]; if(arr && arr[2]){ var t = arr[2]; thirds.push({g:gid,n:t.n,p:t.p,dg:t.dg,gf:t.gf}); }});
+      thirds.sort(function(a,b){ if(b.p!==a.p) return b.p-a.p; if(b.dg!==a.dg) return b.dg-a.dg; if(b.gf!==a.gf) return b.gf-a.gf; return a.n.localeCompare(b.n); });
+      return thirds;
+    }
+
+    var ADVANCEMENT_ROUNDS = [
+      { key: 'FIRST_KO', ids: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88] },
+      { key: 'R16', ids: [89,90,91,92,93,94,95,96] },
+      { key: 'QF', ids: [97,98,99,100] },
+      { key: 'SF', ids: [101,102] },
+      { key: 'FINAL', ids: [104] }
+    ];
+
+    function emptyRoundSets(){
+      return { FIRST_KO: {}, R16: {}, QF: {}, SF: {}, FINAL: {} };
+    }
+
+    function addTeamToRoundSet(roundSets, roundKey, teamName){
+      var key = normalizeKey(teamName);
+      if(key && roundSets[roundKey]) roundSets[roundKey][key] = true;
+    }
+
+    function hasManualAdvancementRounds(rounds){
+      if(!rounds) return false;
+      return ADVANCEMENT_ROUNDS.some(function(r){
+        return Array.isArray(rounds[r.key]) && rounds[r.key].length > 0;
+      });
+    }
+
+    function manualAdvancementRoundsToSets(rounds){
+      var sets = emptyRoundSets();
+      ADVANCEMENT_ROUNDS.forEach(function(r){
+        ((rounds && rounds[r.key]) || []).forEach(function(t){ addTeamToRoundSet(sets, r.key, t); });
+      });
+      return sets;
+    }
+
+    // Return true only when all group-stage matches (1..72) have numeric results.
+    function allGroupMatchesCompleted(){
+      for(var i=1;i<=72;i++){
+        var r = actualResults[i];
+        if(!r || typeof r.gL !== 'number' || typeof r.gV !== 'number') return false;
+      }
+      return true;
+    }
+
+    function deriveActualAdvancementRoundsFromBracket(bracket){
+      var sets = emptyRoundSets();
+      if(!bracket) return sets;
+      var allMatches = [].concat(bracket.OCT||[], bracket.CUA||[], bracket.SEM||[], bracket.SFNL||[], bracket.FNL||[]);
+
+      ADVANCEMENT_ROUNDS.forEach(function(round){
+        round.ids.forEach(function(matchId){
+          var m = allMatches.find(function(x){ return x && x.id === matchId; });
+          if(!m) return;
+          var resolved = null;
+          try { resolved = resolveMatchTeams(matchId); } catch(e) { resolved = null; }
+          if(!resolved) return;
+          addTeamToRoundSet(sets, round.key, resolved.lo);
+          addTeamToRoundSet(sets, round.key, resolved.vi);
+        });
+      });
+
+      return sets;
+    }
+
+    function getActualAdvancementRoundSets(){
+      // Require group-stage completion before honoring any advancement derivation
+      // (including manual overrides). This prevents premature awarding.
+      if(!allGroupMatchesCompleted()) return emptyRoundSets();
+
+      if(hasManualAdvancementRounds(actualAdvancementTeamsByRound)) {
+        return manualAdvancementRoundsToSets(actualAdvancementTeamsByRound);
+      }
+
+      // Backward compatibility: an old `actualKnockoutTeams` list can only
+      // represent the first knockout round, so treat it as FIRST_KO and leave later rounds empty.
+      if(Array.isArray(actualKnockoutTeams) && actualKnockoutTeams.length > 0){
+        return manualAdvancementRoundsToSets({ FIRST_KO: actualKnockoutTeams, R16: [], QF: [], SF: [], FINAL: [] });
+      }
+
+      return deriveActualAdvancementRoundsFromBracket(BRACKET);
+    }
+
+    function getPredictedAdvancementRoundSets(data){
+      var sets = emptyRoundSets();
+      var elim = (data.predicciones && data.predicciones.elim) || {};
+
+      ADVANCEMENT_ROUNDS.forEach(function(round){
+        round.ids.forEach(function(matchId){
+          var m = elim[matchId] || elim[String(matchId)];
+          if(!m) return;
+          addTeamToRoundSet(sets, round.key, m.lo);
+          addTeamToRoundSet(sets, round.key, m.vi);
+        });
+      });
+
+      return sets;
+    }
+
+    function countAdvancementRoundBonus(actualRounds, predictedRounds){
+      var extra = 0;
+      ADVANCEMENT_ROUNDS.forEach(function(round){
+        var actual = (actualRounds && actualRounds[round.key]) || {};
+        var predicted = (predictedRounds && predictedRounds[round.key]) || {};
+        Object.keys(predicted).forEach(function(teamKey){
+          if(actual[teamKey]) extra += 1;
+        });
+      });
+      return extra;
+    }
+
+    // Legacy helper retained for any older code that may still call it.
+    function deriveActualKnockoutTeamsFromBracket(bracket){
+      var sets = deriveActualAdvancementRoundsFromBracket(bracket);
+      return Object.keys(sets.FIRST_KO || {});
+    }
+
+    // Resolve the two team names that actually played a knockout match (if possible).
+    function resolveMatchTeams(matchId){
+      // Do not call loadBracket() here. loadBracket() is async and initAndRender()
+      // already awaits it. If BRACKET is not ready, return null instead of
+      // accidentally storing a Promise in BRACKET.
+      if(!BRACKET || typeof BRACKET.then === 'function' || !BRACKET.GS) return null;
+      var standings = computeAllStandings(BRACKET);
+      var bestThirds = computeBestThirds(standings);
+      function resolveSlot(ref){ if(!ref) return null; var m = ref.match(/^(\d)([A-L])$/); if(m){ var pos = parseInt(m[1],10); var gid = m[2]; var arr = standings[gid]; return arr && arr[pos-1]?{n:arr[pos-1].n}:null; }
+        if(ref[0]==='3' && ref.length>2){ if(bestThirds.length<8) return null; var qs = bestThirds.slice(0,8).map(function(t){return t.g;}).sort().join(''); var cb = (BRACKET.CMB||[]).find(function(c){return c.groups===qs;}); if(!cb) return null; var om = (BRACKET.OCT||[]).find(function(o){return o.vrk===ref || o.lrk===ref;}); if(!om) return null; var key = om.lrk===ref?om.vrk:om.vrk===ref?om.lrk:''; var tg = cb[ key ]; if(!tg) return null; var gl = tg[1]; var found = bestThirds.find(function(t){return t.g===gl}); return found?{n:found.n}:null; } return null; }
+
+      var allMatches = [].concat(BRACKET.OCT||[], BRACKET.CUA||[], BRACKET.SEM||[], BRACKET.SFNL||[], BRACKET.TER||[], BRACKET.FNL||[]);
+      var m = allMatches.find(function(x){return x.id===matchId;}); if(!m) return null;
+
+      function resolveSide(sideKey){
+        // sideKey: 'lrk'/'vrk' or 'lp'/'vp' depending on structure
+        var name = '';
+        if(m.lrk && sideKey==='lrk'){
+          var r = resolveSlot(m.lrk); if(r) name = r.n;
+        }
+        if(m.vrk && sideKey==='vrk'){
+          var r2 = resolveSlot(m.vrk); if(r2) name = r2.n;
+        }
+        return name || null;
+      }
+
+      // More thorough: compute left and right by checking lrk/vrk, else lp/vp recursively
+      var left=null, right=null;
+      // try lrk/vrk first
+      if(m.lrk) left = resolveSlot(m.lrk); if(m.vrk) right = resolveSlot(m.vrk);
+
+      // helper to resolve winner of prior match
+      function winnerOf(matchObj){
+        if(!matchObj) return null;
+        var res = actualElimResults[matchObj.id];
+        // need teams playing that match
+        var teams = resolveMatchTeams(matchObj.id);
+        if(!teams) return null;
+        if(res && typeof res.gL==='number' && typeof res.gV==='number'){
+          if(res.gL>res.gV) return teams.lo || teams.left || null;
+          if(res.gV>res.gL) return teams.vi || teams.right || null;
+          if(res.pen==='lo') return teams.lo || teams.left || null;
+          if(res.pen==='vi') return teams.vi || teams.right || null;
+        }
+        return null;
+      }
+
+      // if still unresolved, try lp/vp references
+      if(!left && m.lp){
+        var prev = allMatches.find(function(x){return x.id===m.lp;});
+        if(prev){
+          // left entrant is winner of prev if prev has result, else it's the slot name
+          var w = winnerOf(prev);
+          if(w) left = {n:w};
+        }
+      }
+
+      if(!right && m.vp){
+        var prev2 = allMatches.find(function(x){return x.id===m.vp;});
+        if(prev2){
+          var w2 = winnerOf(prev2);
+          if(w2) right = {n:w2};
+        }
+      }
+
+      // Do not guess winners of prior knockout matches when results are missing.
+      // Missing prior results should leave the later-round team unresolved.
+
+      return { lo: left?left.n:'', vi: right?right.n:'' };
+    }
+
+    async function initAndRender(){
+      BRACKET = await loadBracket();
+      // Quick test mode: populate actualResults/actualElimResults from
+      // the first sample prediction file so we can exercise the code.
+      var testWithSample = false; // set to true to enable test mode with sample data (make sure predictionFiles[0] is a valid sample)
+      if(testWithSample && predictionFiles && predictionFiles.length>0){
+        try{
+          var sample = await loadPrediction(predictionFiles[0]);
+          // copy group stage predictions into actualResults
+          var g = (sample.predicciones && sample.predicciones.grupos) || {};
+          Object.keys(g).forEach(function(gr){ (g[gr]||[]).forEach(function(m){
+            var id = m.id; var gl = parseInt(m.gL,10); var gv = parseInt(m.gV,10);
+            if(!isNaN(gl) && !isNaN(gv)) actualResults[id] = { gL: gl, gV: gv };
+          });});
+          // copy elimination predictions into actualElimResults
+          var elim = (sample.predicciones && sample.predicciones.elim) || {};
+          Object.keys(elim).forEach(function(mid){ var me = elim[mid]; var gL = parseInt(me.gL,10); var gV = parseInt(me.gV,10); if(!isNaN(gL) && !isNaN(gV)) actualElimResults[mid] = { gL: gL, gV: gV, pen: (me.pen||'') }; });
+        }catch(e){/* ignore test load errors */}
+      }
+
+      // Advancement bonus teams are derived on demand in computeUserPoints().
+      // If you manually fill actualAdvancementTeamsByRound above, the scorer will use it.
+      renderLeaderboard();
+    }
+
+    document.addEventListener('DOMContentLoaded', initAndRender);
   </script>
 </body>
 </html>
