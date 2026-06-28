@@ -354,14 +354,18 @@
         }
       });
 
-      // Round-by-round advancement bonus:
-      // +1 per team, per correct round reached, for FIRST_KO, R16, QF, SF, and FINAL.
-      // Example: if a team actually reaches the Final and the participant also
-      // predicted that team in IDs 73-88, R16, QF, SF, and Final, that team earns +5 total.
-      // Match 103 (third-place) is excluded from this advancement bonus.
-      var actualRounds = getActualAdvancementRoundSets();
-      var predictedRounds = getPredictedAdvancementRoundSets(data);
-      total += countAdvancementRoundBonus(actualRounds, predictedRounds);
+      // Knockout-stage qualification bonus:
+      // +1 per team that the participant correctly predicted would reach the first
+      // knockout round, regardless of exact group position, match slot, or matchup.
+      total += countKnockoutQualificationBonus(data);
+
+      // Round-by-round advancement bonus after the first knockout round:
+      // +1 each time a team actually reaches R16, QF, SF, or FINAL and the
+      // participant predicted that same team in that same phase, regardless of slot/order.
+      total += countPostFirstKoAdvancementBonus(
+        getActualAdvancementRoundSets(),
+        getPredictedAdvancementRoundSets(data)
+      );
 
       // Aplicar penalizaciones
       var participantName = normalizeParticipantName(data, '');
@@ -637,6 +641,133 @@
       return thirds;
     }
 
+    function addTeamToSimpleSet(set, teamName){
+      var key = normalizeKey(teamName);
+      if(key) set[key] = true;
+    }
+
+    function groupStandingTeamHasGames(team){
+      if(!team) return false;
+      if(team.j === undefined || team.j === null || team.j === '') return true;
+      return Number(team.j) > 0;
+    }
+
+    function applyBestThirdManualOverride(thirds, groupId){
+      if(!groupId || !Array.isArray(thirds) || thirds.length < 9) return thirds;
+      var idx = thirds.findIndex(function(t){ return t && t.g === groupId; });
+      if(idx > 7){
+        var tmp = thirds[7];
+        thirds[7] = thirds[idx];
+        thirds[idx] = tmp;
+      }
+      return thirds;
+    }
+
+    function getActualKnockoutQualificationSet(){
+      var set = {};
+
+      // Do not award the qualification bonus until all group-stage results are entered.
+      if(!allGroupMatchesCompleted()) return set;
+
+      // Manual override support: if you fill FIRST_KO manually, use that as the actual
+      // list of 32 teams that reached the knockout stage.
+      if(actualAdvancementTeamsByRound && Array.isArray(actualAdvancementTeamsByRound.FIRST_KO) && actualAdvancementTeamsByRound.FIRST_KO.length){
+        actualAdvancementTeamsByRound.FIRST_KO.forEach(function(team){ addTeamToSimpleSet(set, team); });
+        return set;
+      }
+
+      // Backward compatibility for the old manual array.
+      if(Array.isArray(actualKnockoutTeams) && actualKnockoutTeams.length){
+        actualKnockoutTeams.forEach(function(team){ addTeamToSimpleSet(set, team); });
+        return set;
+      }
+
+      if(!BRACKET || !BRACKET.GS) return set;
+
+      var standings = computeAllStandings(BRACKET);
+
+      // Top 2 of each group = 24 teams.
+      Object.keys(standings).forEach(function(gid){
+        var arr = standings[gid] || [];
+        if(arr[0]) addTeamToSimpleSet(set, arr[0].n);
+        if(arr[1]) addTeamToSimpleSet(set, arr[1].n);
+      });
+
+      // Best 8 third-place teams = 8 teams.
+      computeBestThirds(standings).slice(0, 8).forEach(function(team){
+        addTeamToSimpleSet(set, team.n);
+      });
+
+      return set;
+    }
+
+    function getPredictedKnockoutQualificationSet(data){
+      var set = {};
+      var pred = (data && data.predicciones) || {};
+      var standings = pred.standings || null;
+
+      // Preferred source: saved group standings from index.html. This awards the
+      // bonus based only on the 32 predicted qualifiers, not where they appear in the bracket.
+      if(standings){
+        var thirds = [];
+
+        Object.keys(standings).forEach(function(gid){
+          var arr = standings[gid] || [];
+
+          if(arr[0] && groupStandingTeamHasGames(arr[0])) addTeamToSimpleSet(set, arr[0].n);
+          if(arr[1] && groupStandingTeamHasGames(arr[1])) addTeamToSimpleSet(set, arr[1].n);
+
+          if(arr[2] && groupStandingTeamHasGames(arr[2])){
+            thirds.push({
+              g: gid,
+              n: arr[2].n,
+              p: Number(arr[2].p || 0),
+              dg: Number(arr[2].dg || 0),
+              gf: Number(arr[2].gf || 0)
+            });
+          }
+        });
+
+        thirds.sort(function(a,b){
+          if(b.p !== a.p) return b.p - a.p;
+          if(b.dg !== a.dg) return b.dg - a.dg;
+          if(b.gf !== a.gf) return b.gf - a.gf;
+          return a.n.localeCompare(b.n);
+        });
+
+        applyBestThirdManualOverride(thirds, pred.t3Ov || '');
+
+        thirds.slice(0, 8).forEach(function(team){
+          addTeamToSimpleSet(set, team.n);
+        });
+
+        return set;
+      }
+
+      // Fallback for older JSONs: use the teams saved in the first knockout round.
+      var elim = pred.elim || {};
+      for(var id = 73; id <= 88; id++){
+        var m = elim[id] || elim[String(id)];
+        if(!m) continue;
+        addTeamToSimpleSet(set, m.lo);
+        addTeamToSimpleSet(set, m.vi);
+      }
+
+      return set;
+    }
+
+    function countKnockoutQualificationBonus(data){
+      var actual = getActualKnockoutQualificationSet();
+      var predicted = getPredictedKnockoutQualificationSet(data);
+      var extra = 0;
+
+      Object.keys(predicted).forEach(function(teamKey){
+        if(actual[teamKey]) extra += 1;
+      });
+
+      return extra;
+    }
+
     var ADVANCEMENT_ROUNDS = [
       { key: 'FIRST_KO', ids: [73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88] },
       { key: 'R16', ids: [89,90,91,92,93,94,95,96] },
@@ -741,6 +872,22 @@
           if(actual[teamKey]) extra += 1;
         });
       });
+      return extra;
+    }
+
+    function countPostFirstKoAdvancementBonus(actualRounds, predictedRounds){
+      var extra = 0;
+      var roundsToCount = ['R16', 'QF', 'SF', 'FINAL'];
+
+      roundsToCount.forEach(function(roundKey){
+        var actual = (actualRounds && actualRounds[roundKey]) || {};
+        var predicted = (predictedRounds && predictedRounds[roundKey]) || {};
+
+        Object.keys(predicted).forEach(function(teamKey){
+          if(actual[teamKey]) extra += 1;
+        });
+      });
+
       return extra;
     }
 
