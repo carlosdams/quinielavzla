@@ -235,6 +235,16 @@
       return s;
     }
 
+    function toScoreNumber(value) {
+      if (value === null || value === undefined || value === '') return null;
+      var n = Number(value);
+      return isFinite(n) ? n : null;
+    }
+
+    function hasNumericScorePair(result) {
+      return !!result && toScoreNumber(result.gL) !== null && toScoreNumber(result.gV) !== null;
+    }
+
     function matchOutcome(result) {
       if (result.gL === result.gV) return 'D';
       return result.gL > result.gV ? 'L' : 'V';
@@ -286,25 +296,38 @@
 
     function scoreMatch(actual, predicted) {
       if (!actual || !predicted) return 0;
-      if (predicted.gL === null || predicted.gV === null) return 0;
 
-      if (actual.gL === predicted.gL && actual.gV === predicted.gV) {
+      var aL = toScoreNumber(actual.gL);
+      var aV = toScoreNumber(actual.gV);
+      var pL = toScoreNumber(predicted.gL);
+      var pV = toScoreNumber(predicted.gV);
+
+      if (aL === null || aV === null || pL === null || pV === null) return 0;
+
+      var actualNorm = { gL: aL, gV: aV };
+      var predictedNorm = { gL: pL, gV: pV };
+
+      if (aL === pL && aV === pV) {
         return 3;
       }
 
-      return matchOutcome(actual) === matchOutcome(predicted) ? 1 : 0;
+      return matchOutcome(actualNorm) === matchOutcome(predictedNorm) ? 1 : 0;
     }
 
     function hasResolvedElimWinner(result) {
-      if (!result || typeof result.gL !== 'number' || typeof result.gV !== 'number') return false;
-      if (result.gL !== result.gV) return true;
+      if (!hasNumericScorePair(result)) return false;
+      var gL = toScoreNumber(result.gL);
+      var gV = toScoreNumber(result.gV);
+      if (gL !== gV) return true;
       return result.pen === 'lo' || result.pen === 'vi';
     }
 
     function getElimWinnerAndLoser(result, teams) {
       if (!hasResolvedElimWinner(result) || !teams || !teams.lo || !teams.vi) return { winner: '', loser: '' };
-      if (result.gL > result.gV) return { winner: teams.lo, loser: teams.vi };
-      if (result.gV > result.gL) return { winner: teams.vi, loser: teams.lo };
+      var gL = toScoreNumber(result.gL);
+      var gV = toScoreNumber(result.gV);
+      if (gL > gV) return { winner: teams.lo, loser: teams.vi };
+      if (gV > gL) return { winner: teams.vi, loser: teams.lo };
       if (result.pen === 'lo') return { winner: teams.lo, loser: teams.vi };
       if (result.pen === 'vi') return { winner: teams.vi, loser: teams.lo };
       return { winner: '', loser: '' };
@@ -566,8 +589,8 @@
           var ar = actualResults[m.id];
           if(!ar) return;
           var lo = m.lo, vi = m.vi;
-          var gL = ar.gL, gV = ar.gV;
-          if(typeof gL!=='number' || typeof gV!=='number') return;
+          var gL = toScoreNumber(ar.gL), gV = toScoreNumber(ar.gV);
+          if(gL === null || gV === null) return;
           teams[lo].j++; teams[vi].j++;
           teams[lo].gf += gL; teams[lo].gc += gV; teams[lo].dg = teams[lo].gf - teams[lo].gc;
           teams[vi].gf += gV; teams[vi].gc += gL; teams[vi].dg = teams[vi].gf - teams[vi].gc;
@@ -588,7 +611,7 @@
         var lo = m.lo, vi = m.vi;
         if(tiedNames.indexOf(lo)===-1 || tiedNames.indexOf(vi)===-1) return;
         var ar = actualResults[m.id]; if(!ar) return;
-        var gL = ar.gL, gV = ar.gV; if(typeof gL!=='number' || typeof gV!=='number') return;
+        var gL = toScoreNumber(ar.gL), gV = toScoreNumber(ar.gV); if(gL === null || gV === null) return;
         stats[lo].gf += gL; stats[lo].gc += gV; stats[lo].dg = stats[lo].gf - stats[lo].gc; stats[vi].gf += gV; stats[vi].gc += gL; stats[vi].dg = stats[vi].gf - stats[vi].gc;
         if(gL>gV){ stats[lo].p+=3; } else if(gL<gV){ stats[vi].p+=3; } else { stats[lo].p+=1; stats[vi].p+=1; }
       });
@@ -627,11 +650,17 @@
       return gObj;
     }
 
-    function computeAllStandings(bracket){
-      var GS = bracket.GS; var groupsMap = buildGroupTables(GS, actualResults);
+    function computeAllStandingsWithResults(bracket, resultsMap){
+      if(!bracket || !bracket.GS) return {};
+      var GS = bracket.GS;
+      var groupsMap = buildGroupTables(GS, resultsMap || {});
       var final = {};
-      GS.forEach(function(g){ var arr = groupsMap[g.id]; final[g.id]= sortGroup(arr, g, actualResults); });
+      GS.forEach(function(g){ var arr = groupsMap[g.id]; final[g.id]= sortGroup(arr, g, resultsMap || {}); });
       return final;
+    }
+
+    function computeAllStandings(bracket){
+      return computeAllStandingsWithResults(bracket, actualResults);
     }
 
     function computeBestThirds(standings){
@@ -701,50 +730,105 @@
       return set;
     }
 
+    function countSimpleSet(set){
+      return Object.keys(set || {}).length;
+    }
+
+    function addKnockoutQualifiersFromStandings(set, standings, manualThirdOverride){
+      var thirds = [];
+
+      Object.keys(standings || {}).forEach(function(gid){
+        var arr = standings[gid] || [];
+
+        if(arr[0] && groupStandingTeamHasGames(arr[0])) addTeamToSimpleSet(set, arr[0].n);
+        if(arr[1] && groupStandingTeamHasGames(arr[1])) addTeamToSimpleSet(set, arr[1].n);
+
+        if(arr[2] && groupStandingTeamHasGames(arr[2])){
+          thirds.push({
+            g: gid,
+            n: arr[2].n,
+            p: Number(arr[2].p || 0),
+            dg: Number(arr[2].dg || 0),
+            gf: Number(arr[2].gf || 0)
+          });
+        }
+      });
+
+      thirds.sort(function(a,b){
+        if(b.p !== a.p) return b.p - a.p;
+        if(b.dg !== a.dg) return b.dg - a.dg;
+        if(b.gf !== a.gf) return b.gf - a.gf;
+        return a.n.localeCompare(b.n);
+      });
+
+      applyBestThirdManualOverride(thirds, manualThirdOverride || '');
+
+      thirds.slice(0, 8).forEach(function(team){
+        addTeamToSimpleSet(set, team.n);
+      });
+    }
+
+    function getPredictedGroupResultsFromData(data){
+      var results = {};
+      var pred = (data && data.predicciones) || {};
+      var grupos = pred.grupos || {};
+
+      Object.keys(grupos).forEach(function(gid){
+        (grupos[gid] || []).forEach(function(m){
+          if(!m || m.id === undefined || m.id === null) return;
+          var gL = toScoreNumber(m.gL !== undefined ? m.gL : m.golL);
+          var gV = toScoreNumber(m.gV !== undefined ? m.gV : m.golV);
+          if(gL !== null && gV !== null) results[m.id] = { gL: gL, gV: gV };
+        });
+      });
+
+      // Extra fallback for JSONs that only have savedScores.
+      var saved = (data && data.savedScores) || {};
+      for(var id=1; id<=72; id++){
+        if(results[id]) continue;
+        var gl = toScoreNumber(saved['gl_' + id]);
+        var gv = toScoreNumber(saved['gv_' + id]);
+        if(gl !== null && gv !== null) results[id] = { gL: gl, gV: gv };
+      }
+
+      return results;
+    }
+
+    function allPredictedGroupMatchesCompleted(results){
+      for(var i=1;i<=72;i++){
+        if(!hasNumericScorePair(results[i])) return false;
+      }
+      return true;
+    }
+
     function getPredictedKnockoutQualificationSet(data){
       var set = {};
       var pred = (data && data.predicciones) || {};
       var standings = pred.standings || null;
 
-      // Preferred source: saved group standings from index.html. This awards the
-      // bonus based only on the 32 predicted qualifiers, not where they appear in the bracket.
+      // Preferred source: saved group standings from index.html. It should produce
+      // 32 qualifiers. If it is missing/incomplete in older JSONs, continue to fallbacks.
       if(standings){
-        var thirds = [];
-
-        Object.keys(standings).forEach(function(gid){
-          var arr = standings[gid] || [];
-
-          if(arr[0] && groupStandingTeamHasGames(arr[0])) addTeamToSimpleSet(set, arr[0].n);
-          if(arr[1] && groupStandingTeamHasGames(arr[1])) addTeamToSimpleSet(set, arr[1].n);
-
-          if(arr[2] && groupStandingTeamHasGames(arr[2])){
-            thirds.push({
-              g: gid,
-              n: arr[2].n,
-              p: Number(arr[2].p || 0),
-              dg: Number(arr[2].dg || 0),
-              gf: Number(arr[2].gf || 0)
-            });
-          }
-        });
-
-        thirds.sort(function(a,b){
-          if(b.p !== a.p) return b.p - a.p;
-          if(b.dg !== a.dg) return b.dg - a.dg;
-          if(b.gf !== a.gf) return b.gf - a.gf;
-          return a.n.localeCompare(b.n);
-        });
-
-        applyBestThirdManualOverride(thirds, pred.t3Ov || '');
-
-        thirds.slice(0, 8).forEach(function(team){
-          addTeamToSimpleSet(set, team.n);
-        });
-
-        return set;
+        addKnockoutQualifiersFromStandings(set, standings, pred.t3Ov || '');
+        if(countSimpleSet(set) >= 32) return set;
       }
 
-      // Fallback for older JSONs: use the teams saved in the first knockout round.
+      // Strong fallback: rebuild the participant's predicted standings directly
+      // from their saved group-score predictions. This fixes older JSONs where
+      // predicciones.standings is missing or incomplete.
+      var predictedGroupResults = getPredictedGroupResultsFromData(data);
+      if(BRACKET && BRACKET.GS && allPredictedGroupMatchesCompleted(predictedGroupResults)){
+        set = {};
+        addKnockoutQualifiersFromStandings(
+          set,
+          computeAllStandingsWithResults(BRACKET, predictedGroupResults),
+          pred.t3Ov || ''
+        );
+        if(countSimpleSet(set) >= 32) return set;
+      }
+
+      // Final fallback for older JSONs: use the teams saved in the first knockout round.
+      set = {};
       var elim = pred.elim || {};
       for(var id = 73; id <= 88; id++){
         var m = elim[id] || elim[String(id)];
@@ -803,8 +887,7 @@
     // Return true only when all group-stage matches (1..72) have numeric results.
     function allGroupMatchesCompleted(){
       for(var i=1;i<=72;i++){
-        var r = actualResults[i];
-        if(!r || typeof r.gL !== 'number' || typeof r.gV !== 'number') return false;
+        if(!hasNumericScorePair(actualResults[i])) return false;
       }
       return true;
     }
@@ -935,9 +1018,10 @@
         // need teams playing that match
         var teams = resolveMatchTeams(matchObj.id);
         if(!teams) return null;
-        if(res && typeof res.gL==='number' && typeof res.gV==='number'){
-          if(res.gL>res.gV) return teams.lo || teams.left || null;
-          if(res.gV>res.gL) return teams.vi || teams.right || null;
+        if(hasNumericScorePair(res)){
+          var gL = toScoreNumber(res.gL), gV = toScoreNumber(res.gV);
+          if(gL>gV) return teams.lo || teams.left || null;
+          if(gV>gL) return teams.vi || teams.right || null;
           if(res.pen==='lo') return teams.lo || teams.left || null;
           if(res.pen==='vi') return teams.vi || teams.right || null;
         }
