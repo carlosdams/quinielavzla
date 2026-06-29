@@ -356,12 +356,13 @@
       // award 0 score points for that elimination match instead of using
       // score-only legacy fallback.
       Object.keys(actualElimResults).forEach(function (id) {
+        var matchId = parseInt(id, 10);
         var actual = actualElimResults[id];
-        var predicted = getPredictedMatch(data, id);
+        var predicted = getPredictedMatch(data, matchId);
 
         // try to resolve actual teams for this elimination match
         var actualTeams = null;
-        try { if (BRACKET) actualTeams = resolveMatchTeams(id); } catch (e) { actualTeams = null; }
+        try { if (BRACKET) actualTeams = resolveMatchTeams(matchId); } catch (e) { actualTeams = null; }
 
         if (actualTeams && actualTeams.lo && actualTeams.vi && predicted && (predicted.loName || predicted.viName)) {
           var aLo = normalizeKey(actualTeams.lo);
@@ -1011,6 +1012,8 @@
       // Do not call loadBracket() here. loadBracket() is async and initAndRender()
       // already awaits it. If BRACKET is not ready, return null instead of
       // accidentally storing a Promise in BRACKET.
+      matchId = parseInt(matchId, 10);
+      if(isNaN(matchId)) return null;
       if(!BRACKET || typeof BRACKET.then === 'function' || !BRACKET.GS) return null;
       var standings = computeAllStandings(BRACKET);
       var bestThirds = computeBestThirds(standings);
