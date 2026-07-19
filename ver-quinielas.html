@@ -205,7 +205,7 @@
       100: { gL: 1, gV: 1, pen: 'lo' }, // Argentina vs Switzerland
       101: { gL: 0, gV: 2 }, // Francia vs España
       102: { gL: 1, gV: 2 }, // England vs Argentina
-      //103: { gL: 1, gV: 2 }, // France vs England
+      103: { gL: 4, gV: 6 }, // France vs England
       //104: { gL: 1, gV: 2 },  // España vs Argentina
     };
 
@@ -360,6 +360,28 @@
       return { winner: '', loser: '' };
     }
 
+    // Derive a participant's predicted knockout winner directly from that
+    // match prediction. Do not trust readonly special fields such as sp3,
+    // because older/stale JSON files can contain a value that no longer
+    // agrees with the participant's score for match 103.
+    function getPredictedElimWinner(data, matchId) {
+      var elim = (data.predicciones && data.predicciones.elim) || {};
+      var match = elim[matchId] || elim[String(matchId)] || null;
+      if (!match) return '';
+
+      var gL = toScoreNumber(match.gL);
+      var gV = toScoreNumber(match.gV);
+      var lo = (match.lo || '').toString();
+      var vi = (match.vi || '').toString();
+
+      if (gL === null || gV === null || !lo || !vi) return '';
+      if (gL > gV) return lo;
+      if (gV > gL) return vi;
+      if (match.pen === 'lo') return lo;
+      if (match.pen === 'vi') return vi;
+      return '';
+    }
+
     function computeUserPoints(data) {
       var total = 0;
       Object.keys(actualResults).forEach(function (id) {
@@ -465,8 +487,10 @@
         var pChamp = (data.values && data.values.sp1) || (data.predicciones && data.predicciones.esp && data.predicciones.esp.c) || '';
         if (actChamp && pChamp && norm(pChamp) === norm(actChamp)) total += 10;
 
-        // third place (5)
-        var pThird = (data.values && data.values.sp3) || (data.predicciones && data.predicciones.esp && data.predicciones.esp.t) || '';
+        // third place (5) — must be the winner of the participant's
+        // own predicted third-place match (103). This prevents stale sp3
+        // values from awarding five points incorrectly.
+        var pThird = getPredictedElimWinner(data, 103);
         if (actThird && pThird && norm(pThird) === norm(actThird)) total += 5;
 
         // runner-up (5) — must be the loser of the participant's predicted final (match 104)
@@ -1057,38 +1081,46 @@
       // try lrk/vrk first
       if(m.lrk) left = resolveSlot(m.lrk); if(m.vrk) right = resolveSlot(m.vrk);
 
-      // helper to resolve winner of prior match
-      function winnerOf(matchObj){
-        if(!matchObj) return null;
+      // Resolve the winner or loser of a prior knockout match.
+      // Most later rounds receive prior-match winners, but match 103 receives
+      // the LOSERS of semifinals 101 and 102 (lr/vr are L101 and L102).
+      function outcomeOf(matchObj){
+        if(!matchObj) return { winner: null, loser: null };
         var res = actualElimResults[matchObj.id];
-        // need teams playing that match
         var teams = resolveMatchTeams(matchObj.id);
-        if(!teams) return null;
-        if(hasNumericScorePair(res)){
-          var gL = toScoreNumber(res.gL), gV = toScoreNumber(res.gV);
-          if(gL>gV) return teams.lo || teams.left || null;
-          if(gV>gL) return teams.vi || teams.right || null;
-          if(res.pen==='lo') return teams.lo || teams.left || null;
-          if(res.pen==='vi') return teams.vi || teams.right || null;
-        }
-        return null;
+        if(!teams || !hasNumericScorePair(res)) return { winner: null, loser: null };
+
+        var gL = toScoreNumber(res.gL), gV = toScoreNumber(res.gV);
+        var local = teams.lo || teams.left || null;
+        var visitor = teams.vi || teams.right || null;
+
+        if(gL > gV) return { winner: local, loser: visitor };
+        if(gV > gL) return { winner: visitor, loser: local };
+        if(res.pen === 'lo') return { winner: local, loser: visitor };
+        if(res.pen === 'vi') return { winner: visitor, loser: local };
+        return { winner: null, loser: null };
+      }
+
+      function entrantFromPrevious(prevMatch, sideRef){
+        var outcome = outcomeOf(prevMatch);
+        var needsLoser = /^L\d+$/.test((sideRef || '').toString()) || m.lsr === 1;
+        return needsLoser ? outcome.loser : outcome.winner;
       }
 
       // if still unresolved, try lp/vp references
       if(!left && m.lp){
         var prev = allMatches.find(function(x){return x.id===m.lp;});
         if(prev){
-          // left entrant is winner of prev if prev has result, else it's the slot name
-          var w = winnerOf(prev);
-          if(w) left = {n:w};
+          var entrantLeft = entrantFromPrevious(prev, m.lr);
+          if(entrantLeft) left = {n:entrantLeft};
         }
       }
 
       if(!right && m.vp){
         var prev2 = allMatches.find(function(x){return x.id===m.vp;});
         if(prev2){
-          var w2 = winnerOf(prev2);
-          if(w2) right = {n:w2};
+          var entrantRight = entrantFromPrevious(prev2, m.vr);
+          if(entrantRight) right = {n:entrantRight};
         }
       }
 
